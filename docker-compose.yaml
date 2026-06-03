@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Base de Datos (PostgreSQL)
+  base_datos:
+    image: postgres:15-alpine
+    container_name: burger_db
+    restart: always
+    environment:
+      POSTGRES_USER: jefe_cocina
+      POSTGRES_PASSWORD: MiPasswordSuperSeguro123!
+      POSTGRES_DB: burger_pedidos
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - red_burger
+
+  # Entorno de Desarrollo (Astro + VS Code Dev Container)
+  web_desarrollo:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: burger_web_dev
+    restart: always
+    ports:
+      - "4321:4321" # Puerto por defecto de Astro
+    environment:
+      - DATABASE_URL=postgresql://jefe_cocina:MiPasswordSuperSeguro123!@base_datos:5432/burger_pedidos
+    volumes:
+      - .:/workspace # Sincroniza tu código en tiempo real
+    depends_on:
+      - base_datos
+    networks:
+      - red_burger
+    # Mantiene el contenedor vivo esperando a que te conectes con VS Code
+    command: sleep infinity 
+
+volumes:
+  db_data:
+
+networks:
+  red_burger:
+    driver: bridge

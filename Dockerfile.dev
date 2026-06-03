@@ -1,0 +1,9 @@
+FROM node:22-alpine
+
+# Instalamos git, openssh y herramientas básicas por si las necesitas dentro de VS Code
+RUN apk update && apk add --no-cache git openssh bash
+
+WORKDIR /workspace
+
+# Exponemos el puerto de desarrollo de Astro
+EXPOSE 4321
