@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageFrame from '../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Reservas"
+    title="Mesa, brasa y ruido"
+    description="Reserva para venir con tu gente. Mas adelante conectaremos disponibilidad real y confirmacion automatica."
+  >
+    <section class="content-section">
+      <h2 class="section-title">Reserva rapida</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>Jueves</h3>
+          <p>Arranque suave de la semana, burger seria y local con margen para sobremesa.</p>
+          <strong>20:00-00:30</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Viernes y sabado</h3>
+          <p>El prime time. Recomendable reservar antes de venir con grupo.</p>
+          <strong>20:00-01:00</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Domingo</h3>
+          <p>Plan de cierre: brasa, cheddar y cero ganas de cocinar.</p>
+          <strong>20:00-00:00</strong>
+        </article>
+      </div>
+      <a class="action-link" href="/contacto">Contactar para reservar</a>
+    </section>
+  </PageFrame>
+</Layout>

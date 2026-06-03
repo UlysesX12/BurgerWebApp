@@ -1,0 +1,193 @@
+---
+import burgerPoster from '../assets/Image2.png';
+
+interface Props {
+  kicker: string;
+  title: string;
+  description: string;
+}
+
+const { kicker, title, description } = Astro.props;
+---
+
+<main class="page-frame" style={`--page-poster: url("${burgerPoster.src}")`}>
+  <section class="page-hero">
+    <div class="page-bg" aria-hidden="true"></div>
+    <div class="page-hero-inner">
+      <p>{kicker}</p>
+      <h1>{title}</h1>
+      <span>{description}</span>
+    </div>
+  </section>
+
+  <slot />
+</main>
+
+<style>
+  .page-frame {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 105, 23, 0.18), transparent 28rem),
+      #050403;
+    color: #fff;
+  }
+
+  .page-hero {
+    position: relative;
+    display: grid;
+    min-height: 58vh;
+    place-items: end start;
+    overflow: hidden;
+    padding: clamp(7rem, 13vh, 10rem) 1.25rem clamp(3rem, 8vw, 6rem);
+  }
+
+  .page-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.84), transparent 48%, rgba(0, 0, 0, 0.68)),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.2), #050403 92%),
+      var(--page-poster);
+    background-position: center;
+    background-size: cover;
+    filter: saturate(1.08) contrast(1.08);
+    transform: scale(1.03);
+  }
+
+  .page-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+    background-size: 70px 70px;
+    opacity: 0.22;
+  }
+
+  .page-hero-inner {
+    position: relative;
+    z-index: 1;
+    width: min(1180px, 100%);
+    margin: 0 auto;
+  }
+
+  .page-hero p {
+    margin: 0 0 0.75rem;
+    color: #ffbc62;
+    font-size: 0.78rem;
+    font-weight: 950;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .page-hero h1 {
+    max-width: 980px;
+    margin: 0;
+    font-size: clamp(3.2rem, 8.5vw, 9rem);
+    font-weight: 1000;
+    line-height: 0.84;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    text-shadow: 0 0 34px rgba(0, 0, 0, 0.86);
+  }
+
+  .page-hero span {
+    display: block;
+    max-width: 42rem;
+    margin-top: 1.1rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: clamp(1rem, 1.8vw, 1.25rem);
+    line-height: 1.55;
+  }
+
+  :global(.content-section) {
+    width: min(1180px, calc(100% - 2.5rem));
+    margin: 0 auto;
+    padding: clamp(3rem, 7vw, 6rem) 0;
+  }
+
+  :global(.section-title) {
+    margin: 0 0 1.5rem;
+    font-size: clamp(2rem, 5vw, 5rem);
+    font-weight: 1000;
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  :global(.card-grid) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  :global(.brasa-card) {
+    position: relative;
+    min-height: 15rem;
+    padding: 1.2rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)),
+      rgba(13, 11, 9, 0.78);
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(14px);
+  }
+
+  :global(.brasa-card h2),
+  :global(.brasa-card h3) {
+    margin: 0 0 0.8rem;
+    font-size: clamp(1.55rem, 3vw, 2.6rem);
+    font-weight: 1000;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  :global(.brasa-card p) {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.55;
+  }
+
+  :global(.brasa-card strong) {
+    display: block;
+    margin-top: 1.2rem;
+    color: #ffbc62;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :global(.action-link) {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding: 0 1.1rem;
+    border: 1px solid rgba(255, 157, 37, 0.56);
+    border-radius: 8px;
+    color: #140b04;
+    background: #ff9d25;
+    font-size: 0.84rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 760px) {
+    :global(.card-grid) {
+      grid-template-columns: 1fr;
+    }
+
+    .page-hero {
+      min-height: 52vh;
+      padding-top: 6.5rem;
+    }
+  }
+</style>

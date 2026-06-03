@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageFrame from '../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Sobre nosotros"
+    title="Nacimos para manchar servilletas"
+    description="La Brasa Gamberra mezcla producto, fuego, musica alta y una carta pensada para volver."
+  >
+    <section class="content-section">
+      <h2 class="section-title">Nuestra forma de hacer ruido</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>Producto</h3>
+          <p>Carne bien tratada, pan tostado, salsas propias y cocina directa.</p>
+          <strong>Sin postureo vacio</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Fuego</h3>
+          <p>La brasa no es decorado: marca sabor, ambiente y personalidad.</p>
+          <strong>Se nota</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Actitud</h3>
+          <p>Un local para comer fuerte, pedir otra ronda y salir hablando de la burger.</p>
+          <strong>Rock and roll</strong>
+        </article>
+      </div>
+    </section>
+  </PageFrame>
+</Layout>

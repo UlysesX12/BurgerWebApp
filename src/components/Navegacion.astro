@@ -1,0 +1,233 @@
+---
+// src/components/Navegacion.astro
+---
+
+<a class="brand-mark" href="/" aria-label="La Brasa Gamberra inicio">
+  <span>La Brasa</span>
+  <strong>Gamberra</strong>
+</a>
+
+<button id="menu-toggle" class="menu-toggle" aria-label="Abrir menu" type="button">
+  <span id="line-1"></span>
+  <span id="line-2"></span>
+  <span id="line-3"></span>
+</button>
+
+<div id="menu-panel" class="menu-panel" aria-hidden="true">
+  <nav class="menu-nav" aria-label="Navegacion principal">
+    <a class="menu-link" href="/"><span>01</span> Inicio</a>
+    <a class="menu-link" href="/carta"><span>02</span> La carta</a>
+    <a class="menu-link" href="/takeaway"><span>03</span> Pedidos</a>
+    <a class="menu-link" href="/reservas"><span>04</span> Reservas</a>
+    <a class="menu-link" href="/sobre-nosotros"><span>05</span> Sobre nosotros</a>
+    <a class="menu-link" href="/contacto"><span>06</span> Contacto</a>
+  </nav>
+
+  <div class="menu-meta">
+    <span>Jue-Dom · 20:00-00:30</span>
+    <span>Smash burgers · Brasa · Takeaway</span>
+  </div>
+</div>
+
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const menuPanel = document.getElementById('menu-panel');
+  const line1 = document.getElementById('line-1');
+  const line2 = document.getElementById('line-2');
+  const line3 = document.getElementById('line-3');
+  const menuLinks = document.querySelectorAll('.menu-link');
+
+  let isOpen = false;
+
+  function toggleMenu() {
+    isOpen = !isOpen;
+    menuPanel?.classList.toggle('is-open', isOpen);
+    menuPanel?.setAttribute('aria-hidden', String(!isOpen));
+    menuToggle?.classList.toggle('is-open', isOpen);
+    line1?.classList.toggle('is-open', isOpen);
+    line2?.classList.toggle('is-open', isOpen);
+    line3?.classList.toggle('is-open', isOpen);
+  }
+
+  menuToggle?.addEventListener('click', toggleMenu);
+
+  menuLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      if (isOpen) toggleMenu();
+    });
+  });
+</script>
+
+<style>
+  .brand-mark {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 60;
+    display: grid;
+    gap: 0;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(5, 4, 3, 0.52);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.28);
+    text-decoration: none;
+    text-transform: uppercase;
+    backdrop-filter: blur(14px);
+  }
+
+  .brand-mark span {
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.67rem;
+    font-weight: 950;
+    letter-spacing: 0.16em;
+  }
+
+  .brand-mark strong {
+    color: #ff9d25;
+    font-size: 1rem;
+    font-weight: 1000;
+    letter-spacing: 0;
+    line-height: 0.95;
+  }
+
+  .menu-toggle {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 70;
+    display: grid;
+    width: 4rem;
+    height: 4rem;
+    place-items: center;
+    border: 1px solid rgba(255, 157, 37, 0.48);
+    border-radius: 50%;
+    background: #ff9d25;
+    box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.45), 0 0 2rem rgba(255, 94, 20, 0.38);
+    cursor: pointer;
+  }
+
+  .menu-toggle span {
+    grid-area: 1 / 1;
+    width: 1.45rem;
+    height: 0.18rem;
+    border-radius: 999px;
+    background: #120904;
+    transition: transform 220ms ease, opacity 220ms ease, background 220ms ease;
+  }
+
+  #line-1 {
+    transform: translateY(-0.45rem);
+  }
+
+  #line-3 {
+    transform: translateY(0.45rem);
+  }
+
+  .menu-toggle.is-open {
+    background: #d92516;
+  }
+
+  #line-1.is-open {
+    transform: rotate(45deg);
+    background: #fff;
+  }
+
+  #line-2.is-open {
+    opacity: 0;
+  }
+
+  #line-3.is-open {
+    transform: rotate(-45deg);
+    background: #fff;
+  }
+
+  .menu-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 6rem 1.25rem;
+    background:
+      radial-gradient(circle at 50% 80%, rgba(255, 94, 20, 0.24), transparent 28rem),
+      rgba(3, 3, 2, 0.88);
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(20px);
+    transition: opacity 260ms ease;
+  }
+
+  .menu-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .menu-nav {
+    display: grid;
+    gap: clamp(0.4rem, 1.3vw, 0.9rem);
+    width: min(980px, 100%);
+  }
+
+  .menu-link {
+    display: flex;
+    gap: clamp(0.75rem, 2vw, 1.4rem);
+    align-items: baseline;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: clamp(2.6rem, 7.4vw, 7.8rem);
+    font-weight: 1000;
+    line-height: 0.88;
+    letter-spacing: 0;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 180ms ease, transform 180ms ease;
+  }
+
+  .menu-link span {
+    color: #ff9d25;
+    font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+    letter-spacing: 0.16em;
+  }
+
+  .menu-link:hover {
+    color: #fff;
+    transform: translateX(0.5rem);
+  }
+
+  .menu-meta {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 720px) {
+    .brand-mark {
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.72rem 0.8rem;
+    }
+
+    .menu-toggle {
+      width: 3.55rem;
+      height: 3.55rem;
+    }
+
+    .menu-panel {
+      justify-items: start;
+    }
+
+    .menu-meta {
+      left: 1.25rem;
+      right: 5.5rem;
+    }
+  }
+</style>

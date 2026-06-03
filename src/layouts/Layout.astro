@@ -1,23 +1,44 @@
+---
+// 1. La trastienda SIEMPRE va envuelta entre tres guiones
+import Navegacion from '../components/Navegacion.astro';
+import FireFooter from '../components/FireFooter.astro';
+---
+
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>La Brasa Gamberra | Smash Burgers</title>
+    </head>
+    <body>
+        <Navegacion />
+
+        <slot />
+        <FireFooter />
+    </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+<style is:global>
+    @import "tailwindcss";
+    
+    /* Tu directiva de escaneo perfecta para Docker */
+    @source "../../src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}";
+
+    :root {
+        color-scheme: dark;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #020617;
+        color: #ffffff;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
 </style>

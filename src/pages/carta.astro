@@ -1,0 +1,54 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageFrame from '../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Carta oficial"
+    title="La alineacion de la brasa"
+    description="Burgers contundentes, entrantes para compartir y extras para montar tu noche sin pedir perdon."
+  >
+    <section class="content-section">
+      <h2 class="section-title">Burgers principales</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>La Gamberra</h3>
+          <p>Doble smash, cheddar fundido, bacon crujiente, cebolla roja y salsa de la casa.</p>
+          <strong>12,90</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>La Brasa</h3>
+          <p>Carne marcada al fuego, pepinillos, tomate, lechuga, cheddar y brioche tostado.</p>
+          <strong>13,90</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>La Salvaje</h3>
+          <p>Triple smash, cheddar extra, bacon ahumado, salsa picante y golpe de carbon.</p>
+          <strong>15,50</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2 class="section-title">Extras y entrantes</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>Patatas Bravas</h3>
+          <p>Corte rustico, salsa brava ahumada y mayo de ajo tostado.</p>
+          <strong>5,90</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Cheddar Fries</h3>
+          <p>Patatas, cheddar fundido, bacon bits y cebollino.</p>
+          <strong>7,50</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Alitas Fuego</h3>
+          <p>Glaseado picante, lima y humo. Avisan tarde.</p>
+          <strong>8,90</strong>
+        </article>
+      </div>
+    </section>
+  </PageFrame>
+</Layout>

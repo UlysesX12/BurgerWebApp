@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageFrame from '../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Contacto"
+    title="Encuentra la brasa"
+    description="Direccion, horarios y canales para reservas, dudas y pedidos especiales."
+  >
+    <section class="content-section">
+      <h2 class="section-title">Datos del local</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>Direccion</h3>
+          <p>Calle Brasa 13, Jerez de la Frontera. Sustituiremos este dato por la direccion real.</p>
+          <strong>Ver mapa proximamente</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Telefono</h3>
+          <p><a href="tel:+34000000000">+34 000 000 000</a></p>
+          <strong>Reservas y pedidos</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Email</h3>
+          <p><a href="mailto:hola@labrasagamberra.com">hola@labrasagamberra.com</a></p>
+          <strong>Eventos y grupos</strong>
+        </article>
+      </div>
+    </section>
+  </PageFrame>
+</Layout>

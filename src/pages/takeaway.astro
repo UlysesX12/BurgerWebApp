@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageFrame from '../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Pedidos online"
+    title="Takeaway con actitud"
+    description="El flujo de pedido completo llegara con carrito, checkout, base de datos y estados de cocina. Esta pantalla deja el terreno listo."
+  >
+    <section class="content-section">
+      <h2 class="section-title">Como va a funcionar</h2>
+      <div class="card-grid">
+        <article class="brasa-card">
+          <h3>Elige</h3>
+          <p>Carta por categorias, extras, puntos de carne, alergenos y disponibilidad en tiempo real.</p>
+          <strong>Paso 01</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Confirma</h3>
+          <p>Datos del cliente, recogida o delivery, hora estimada y resumen final del pedido.</p>
+          <strong>Paso 02</strong>
+        </article>
+        <article class="brasa-card">
+          <h3>Cocina</h3>
+          <p>El pedido entra al panel interno para preparacion, estado y ticket imprimible.</p>
+          <strong>Paso 03</strong>
+        </article>
+      </div>
+      <a class="action-link" href="/carta">Ver carta</a>
+    </section>
+  </PageFrame>
+</Layout>
