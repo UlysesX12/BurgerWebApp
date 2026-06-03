@@ -1,6 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PageFrame from '../components/PageFrame.astro';
+import { categories, formatPrice, menuItems, type MenuCategory } from '../data/menu';
+
+const categoryOrder: MenuCategory[] = ['burgers', 'entrantes', 'extras', 'bebidas'];
 ---
 
 <Layout>
@@ -9,46 +12,123 @@ import PageFrame from '../components/PageFrame.astro';
     title="La alineacion de la brasa"
     description="Burgers contundentes, entrantes para compartir y extras para montar tu noche sin pedir perdon."
   >
-    <section class="content-section">
-      <h2 class="section-title">Burgers principales</h2>
-      <div class="card-grid">
-        <article class="brasa-card">
-          <h3>La Gamberra</h3>
-          <p>Doble smash, cheddar fundido, bacon crujiente, cebolla roja y salsa de la casa.</p>
-          <strong>12,90</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>La Brasa</h3>
-          <p>Carne marcada al fuego, pepinillos, tomate, lechuga, cheddar y brioche tostado.</p>
-          <strong>13,90</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>La Salvaje</h3>
-          <p>Triple smash, cheddar extra, bacon ahumado, salsa picante y golpe de carbon.</p>
-          <strong>15,50</strong>
-        </article>
-      </div>
-    </section>
+    {
+      categoryOrder.map((category) => {
+        const items = menuItems.filter((item) => item.category === category);
 
-    <section class="content-section">
-      <h2 class="section-title">Extras y entrantes</h2>
-      <div class="card-grid">
-        <article class="brasa-card">
-          <h3>Patatas Bravas</h3>
-          <p>Corte rustico, salsa brava ahumada y mayo de ajo tostado.</p>
-          <strong>5,90</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Cheddar Fries</h3>
-          <p>Patatas, cheddar fundido, bacon bits y cebollino.</p>
-          <strong>7,50</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Alitas Fuego</h3>
-          <p>Glaseado picante, lima y humo. Avisan tarde.</p>
-          <strong>8,90</strong>
-        </article>
-      </div>
-    </section>
+        return (
+          <section class="content-section menu-category">
+            <div class="category-head">
+              <h2 class="section-title">{categories[category]}</h2>
+              <span>{items.length.toString().padStart(2, '0')} referencias</span>
+            </div>
+
+            <div class="card-grid">
+              {items.map((item) => (
+                <article class={`brasa-card product-card ${item.featured ? 'is-featured' : ''}`}>
+                  <div class="product-topline">
+                    <span>{item.badge}</span>
+                    <strong>{formatPrice(item.price)}</strong>
+                  </div>
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                  <div class="tag-row">
+                    {item.tags.map((tag) => <span>{tag}</span>)}
+                  </div>
+                  <small>Alergenos: {item.allergens.length ? item.allergens.join(', ') : 'Sin alergenos principales declarados'}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      })
+    }
   </PageFrame>
 </Layout>
+
+<style>
+  .category-head {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .category-head .section-title {
+    margin-bottom: 0;
+  }
+
+  .category-head > span {
+    color: rgba(255, 188, 98, 0.72);
+    font-size: 0.76rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-card {
+    min-height: 18rem;
+  }
+
+  .product-card.is-featured {
+    border-color: rgba(255, 157, 37, 0.52);
+    background:
+      linear-gradient(180deg, rgba(255, 157, 37, 0.16), rgba(255, 255, 255, 0.035)),
+      rgba(16, 12, 9, 0.86);
+  }
+
+  .product-topline {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 3rem;
+  }
+
+  .product-topline span {
+    color: rgba(255, 188, 98, 0.72);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-topline strong {
+    margin: 0;
+    color: #ffbc62;
+    font-size: 1rem;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1rem;
+  }
+
+  .tag-row span {
+    padding: 0.4rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 0.7rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .product-card small {
+    display: block;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.42);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 760px) {
+    .category-head {
+      display: grid;
+      align-items: start;
+    }
+  }
+</style>

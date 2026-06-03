@@ -1,34 +1,457 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PageFrame from '../components/PageFrame.astro';
+import { formatPrice, menuItems } from '../data/menu';
+
+const orderableItems = menuItems.filter((item) => item.category !== 'extras');
+const extras = menuItems.filter((item) => item.category === 'extras');
 ---
 
 <Layout>
   <PageFrame
     kicker="Pedidos online"
     title="Takeaway con actitud"
-    description="El flujo de pedido completo llegara con carrito, checkout, base de datos y estados de cocina. Esta pantalla deja el terreno listo."
+    description="Flujo planteado para carrito, checkout, base de datos, estados de cocina y pago. Ahora funciona como prototipo local."
   >
-    <section class="content-section">
-      <h2 class="section-title">Como va a funcionar</h2>
-      <div class="card-grid">
-        <article class="brasa-card">
-          <h3>Elige</h3>
-          <p>Carta por categorias, extras, puntos de carne, alergenos y disponibilidad en tiempo real.</p>
-          <strong>Paso 01</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Confirma</h3>
-          <p>Datos del cliente, recogida o delivery, hora estimada y resumen final del pedido.</p>
-          <strong>Paso 02</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Cocina</h3>
-          <p>El pedido entra al panel interno para preparacion, estado y ticket imprimible.</p>
-          <strong>Paso 03</strong>
-        </article>
+    <section class="content-section takeaway-layout">
+      <div class="order-catalog">
+        <h2 class="section-title">Elige tu golpe</h2>
+
+        <div class="order-list" data-order-list>
+          {
+            orderableItems.map((item) => (
+              <article class="order-item">
+                <div>
+                  <span>{item.badge}</span>
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                  <small>{item.tags.join(' · ')}</small>
+                </div>
+                <div class="order-item-action">
+                  <strong>{formatPrice(item.price)}</strong>
+                  <button
+                    type="button"
+                    data-add-item
+                    data-id={item.id}
+                    data-name={item.name}
+                    data-price={item.price}
+                  >
+                    Anadir
+                  </button>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+
+        <h2 class="section-title extras-title">Extras</h2>
+        <div class="order-list compact">
+          {
+            extras.map((item) => (
+              <article class="order-item">
+                <div>
+                  <span>{item.badge}</span>
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                </div>
+                <div class="order-item-action">
+                  <strong>{formatPrice(item.price)}</strong>
+                  <button
+                    type="button"
+                    data-add-item
+                    data-id={item.id}
+                    data-name={item.name}
+                    data-price={item.price}
+                  >
+                    Anadir
+                  </button>
+                </div>
+              </article>
+            ))
+          }
+        </div>
       </div>
-      <a class="action-link" href="/carta">Ver carta</a>
+
+      <aside class="cart-panel" aria-label="Carrito de pedido">
+        <div class="cart-head">
+          <span>Pedido local</span>
+          <strong data-cart-total>0,00 €</strong>
+        </div>
+
+        <div class="cart-items" data-cart-items>
+          <p class="empty-cart">Todavia no hay fuego en la cesta.</p>
+        </div>
+
+        <form class="checkout-form" data-checkout-form>
+          <label>
+            Nombre
+            <input name="name" autocomplete="name" placeholder="Tu nombre" />
+          </label>
+          <label>
+            Telefono
+            <input name="phone" autocomplete="tel" placeholder="+34 ..." />
+          </label>
+          <label>
+            Servicio
+            <select name="service">
+              <option value="pickup">Recogida en local</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </label>
+          <label>
+            Hora
+            <input name="time" type="time" />
+          </label>
+          <label class="full">
+            Notas
+            <textarea name="notes" rows="3" placeholder="Sin cebolla, punto de carne, portal..."></textarea>
+          </label>
+
+          <button type="submit">Preparar pedido</button>
+          <small data-order-status>Prototipo local: el siguiente paso es guardar este pedido en BBDD.</small>
+        </form>
+      </aside>
     </section>
   </PageFrame>
 </Layout>
+
+<script>
+  const STORAGE_KEY = 'brasa-cart-v1';
+  const cartItemsNode = document.querySelector('[data-cart-items]');
+  const cartTotalNode = document.querySelector('[data-cart-total]');
+  const checkoutForm = document.querySelector('[data-checkout-form]');
+  const orderStatus = document.querySelector('[data-order-status]');
+  const addButtons = document.querySelectorAll('[data-add-item]');
+
+  /** @type {Array<{id: string; name: string; price: number; quantity: number}>} */
+  let cart = [];
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(value);
+  }
+
+  function loadCart() {
+    try {
+      cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      cart = [];
+    }
+  }
+
+  function saveCart() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+  }
+
+  function renderCart() {
+    if (!cartItemsNode || !cartTotalNode) return;
+
+    if (!cart.length) {
+      cartItemsNode.innerHTML = '<p class="empty-cart">Todavia no hay fuego en la cesta.</p>';
+      cartTotalNode.textContent = formatMoney(0);
+      return;
+    }
+
+    cartItemsNode.innerHTML = cart
+      .map(
+        (item) => `
+          <div class="cart-line">
+            <div>
+              <strong>${item.name}</strong>
+              <span>${item.quantity} x ${formatMoney(item.price)}</span>
+            </div>
+            <div class="cart-controls">
+              <button type="button" data-dec="${item.id}">-</button>
+              <button type="button" data-inc="${item.id}">+</button>
+            </div>
+          </div>
+        `,
+      )
+      .join('');
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    cartTotalNode.textContent = formatMoney(total);
+
+    cartItemsNode.querySelectorAll('[data-inc]').forEach((button) => {
+      button.addEventListener('click', () => changeQuantity(button.getAttribute('data-inc'), 1));
+    });
+
+    cartItemsNode.querySelectorAll('[data-dec]').forEach((button) => {
+      button.addEventListener('click', () => changeQuantity(button.getAttribute('data-dec'), -1));
+    });
+  }
+
+  function addItem(item) {
+    const existing = cart.find((cartItem) => cartItem.id === item.id);
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      cart.push({ ...item, quantity: 1 });
+    }
+
+    saveCart();
+    renderCart();
+  }
+
+  function changeQuantity(id, delta) {
+    const item = cart.find((cartItem) => cartItem.id === id);
+    if (!item) return;
+
+    item.quantity += delta;
+    cart = cart.filter((cartItem) => cartItem.quantity > 0);
+    saveCart();
+    renderCart();
+  }
+
+  addButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      addItem({
+        id: button.getAttribute('data-id') || '',
+        name: button.getAttribute('data-name') || '',
+        price: Number(button.getAttribute('data-price') || 0),
+      });
+    });
+  });
+
+  checkoutForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!orderStatus) return;
+
+    if (!cart.length) {
+      orderStatus.textContent = 'Anade algun producto antes de preparar el pedido.';
+      return;
+    }
+
+    orderStatus.textContent = 'Pedido preparado en local. Pendiente: endpoint API, BBDD, pago y ticket.';
+  });
+
+  loadCart();
+  renderCart();
+</script>
+
+<style>
+  .takeaway-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 0.42fr);
+    gap: clamp(1.25rem, 4vw, 3rem);
+    align-items: start;
+  }
+
+  .order-list {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .extras-title {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .order-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+      rgba(11, 9, 7, 0.82);
+  }
+
+  .order-item span {
+    color: rgba(255, 188, 98, 0.68);
+    font-size: 0.7rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .order-item h3 {
+    margin: 0.35rem 0 0.5rem;
+    font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+    font-weight: 1000;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .order-item p,
+  .order-item small {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.66);
+    line-height: 1.45;
+  }
+
+  .order-item small {
+    display: block;
+    margin-top: 0.7rem;
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  .order-item-action {
+    display: grid;
+    gap: 0.75rem;
+    align-content: center;
+    justify-items: end;
+  }
+
+  .order-item-action strong {
+    color: #ffbc62;
+    font-size: 1.05rem;
+  }
+
+  .order-item-action button,
+  .checkout-form button,
+  .cart-controls button {
+    border: 1px solid rgba(255, 157, 37, 0.5);
+    border-radius: 8px;
+    color: #140b04;
+    background: #ff9d25;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .order-item-action button {
+    min-height: 2.6rem;
+    padding: 0 0.9rem;
+  }
+
+  .cart-panel {
+    position: sticky;
+    top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 157, 37, 0.28);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 105, 23, 0.18), transparent 18rem),
+      rgba(9, 7, 5, 0.92);
+    box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.35);
+  }
+
+  .cart-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .cart-head span {
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .cart-head strong {
+    color: #ffbc62;
+    font-size: 1.5rem;
+  }
+
+  .cart-items {
+    display: grid;
+    gap: 0.7rem;
+    min-height: 4rem;
+    padding: 1rem 0;
+  }
+
+  .empty-cart {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.46);
+  }
+
+  .cart-line {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cart-line strong,
+  .cart-line span {
+    display: block;
+  }
+
+  .cart-line span {
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.82rem;
+  }
+
+  .cart-controls {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .cart-controls button {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .checkout-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .checkout-form label {
+    display: grid;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .checkout-form .full,
+  .checkout-form button,
+  .checkout-form small {
+    grid-column: 1 / -1;
+  }
+
+  .checkout-form input,
+  .checkout-form select,
+  .checkout-form textarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.32);
+    font: inherit;
+    padding: 0.75rem;
+  }
+
+  .checkout-form button {
+    min-height: 3rem;
+  }
+
+  .checkout-form small {
+    color: rgba(255, 255, 255, 0.46);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 900px) {
+    .takeaway-layout,
+    .order-item {
+      grid-template-columns: 1fr;
+    }
+
+    .cart-panel {
+      position: static;
+    }
+
+    .order-item-action {
+      grid-template-columns: auto auto;
+      justify-items: start;
+      justify-content: space-between;
+    }
+  }
+</style>

@@ -1,34 +1,205 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PageFrame from '../components/PageFrame.astro';
+
+const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
 ---
 
 <Layout>
   <PageFrame
     kicker="Reservas"
     title="Mesa, brasa y ruido"
-    description="Reserva para venir con tu gente. Mas adelante conectaremos disponibilidad real y confirmacion automatica."
+    description="Reserva para venir con tu gente. La pantalla queda planteada para disponibilidad real, confirmacion automatica y gestion interna."
   >
-    <section class="content-section">
-      <h2 class="section-title">Reserva rapida</h2>
-      <div class="card-grid">
-        <article class="brasa-card">
-          <h3>Jueves</h3>
-          <p>Arranque suave de la semana, burger seria y local con margen para sobremesa.</p>
-          <strong>20:00-00:30</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Viernes y sabado</h3>
-          <p>El prime time. Recomendable reservar antes de venir con grupo.</p>
-          <strong>20:00-01:00</strong>
-        </article>
-        <article class="brasa-card">
-          <h3>Domingo</h3>
-          <p>Plan de cierre: brasa, cheddar y cero ganas de cocinar.</p>
-          <strong>20:00-00:00</strong>
-        </article>
+    <section class="content-section booking-layout">
+      <div>
+        <h2 class="section-title">Elige tu noche</h2>
+        <div class="slot-grid" aria-label="Horarios disponibles de ejemplo">
+          {slots.map((slot) => <button type="button" data-slot={slot}>{slot}</button>)}
+        </div>
+
+        <div class="card-grid booking-rules">
+          <article class="brasa-card">
+            <h3>Grupos</h3>
+            <p>Para 7 o mas personas conviene confirmar por telefono o email.</p>
+            <strong>Gestion especial</strong>
+          </article>
+          <article class="brasa-card">
+            <h3>Tiempo de mesa</h3>
+            <p>Reservas de 90 minutos en horario punta para mantener el ritmo de cocina.</p>
+            <strong>Prime time</strong>
+          </article>
+          <article class="brasa-card">
+            <h3>Confirmacion</h3>
+            <p>El siguiente paso tecnico sera guardar la reserva en BBDD y enviar confirmacion.</p>
+            <strong>Pendiente backend</strong>
+          </article>
+        </div>
       </div>
-      <a class="action-link" href="/contacto">Contactar para reservar</a>
+
+      <form class="reservation-form" data-reservation-form>
+        <h2>Solicitar reserva</h2>
+        <label>
+          Nombre
+          <input name="name" autocomplete="name" placeholder="Tu nombre" />
+        </label>
+        <label>
+          Telefono
+          <input name="phone" autocomplete="tel" placeholder="+34 ..." />
+        </label>
+        <label>
+          Fecha
+          <input name="date" type="date" />
+        </label>
+        <label>
+          Hora
+          <input name="time" type="time" data-reservation-time />
+        </label>
+        <label>
+          Personas
+          <input name="people" type="number" min="1" max="12" value="2" />
+        </label>
+        <label class="full">
+          Notas
+          <textarea name="notes" rows="4" placeholder="Trona, alergias, cumpleanos..."></textarea>
+        </label>
+        <button type="submit">Preparar reserva</button>
+        <small data-reservation-status>Prototipo local: falta conectar disponibilidad y guardado real.</small>
+      </form>
     </section>
   </PageFrame>
 </Layout>
+
+<script>
+  const slotButtons = document.querySelectorAll('[data-slot]');
+  const reservationTime = document.querySelector('[data-reservation-time]');
+  const reservationForm = document.querySelector('[data-reservation-form]');
+  const reservationStatus = document.querySelector('[data-reservation-status]');
+
+  slotButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      slotButtons.forEach((slot) => slot.classList.remove('is-selected'));
+      button.classList.add('is-selected');
+      if (reservationTime instanceof HTMLInputElement) {
+        reservationTime.value = button.getAttribute('data-slot') || '';
+      }
+    });
+  });
+
+  reservationForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (reservationStatus) {
+      reservationStatus.textContent = 'Reserva preparada. Pendiente: API, BBDD, confirmacion y panel interno.';
+    }
+  });
+</script>
+
+<style>
+  .booking-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.42fr);
+    gap: clamp(1.25rem, 4vw, 3rem);
+    align-items: start;
+  }
+
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
+  }
+
+  .slot-grid button,
+  .reservation-form button {
+    min-height: 3rem;
+    border: 1px solid rgba(255, 157, 37, 0.36);
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .slot-grid button.is-selected,
+  .slot-grid button:hover,
+  .reservation-form button {
+    color: #140b04;
+    background: #ff9d25;
+  }
+
+  .booking-rules {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reservation-form {
+    position: sticky;
+    top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 157, 37, 0.28);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 105, 23, 0.18), transparent 18rem),
+      rgba(9, 7, 5, 0.92);
+  }
+
+  .reservation-form h2,
+  .reservation-form .full,
+  .reservation-form button,
+  .reservation-form small {
+    grid-column: 1 / -1;
+  }
+
+  .reservation-form h2 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  .reservation-form label {
+    display: grid;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.54);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .reservation-form input,
+  .reservation-form textarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.32);
+    font: inherit;
+    padding: 0.75rem;
+  }
+
+  .reservation-form small {
+    color: rgba(255, 255, 255, 0.46);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 900px) {
+    .booking-layout,
+    .booking-rules {
+      grid-template-columns: 1fr;
+    }
+
+    .reservation-form {
+      position: static;
+    }
+
+    .slot-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
