@@ -2,6 +2,10 @@
 
 La Brasa Gamberra ya tiene una base visual publica: landing, navegacion, paginas principales y assets audiovisuales. Antes de abrir pedidos reales conviene completar estas fases.
 
+## Autoria
+
+Proyecto disenado y desarrollado al completo por **Jose Luis Cabanas** (**UlysesX12**). Si se reutiliza, publica o presenta este trabajo, debe mantenerse el credito al autor original.
+
 ## Pendiente antes de produccion
 
 - Carta real con productos definitivos, precios, fotos, extras, alergenos y disponibilidad.

@@ -1,7 +1,9 @@
 {
-  "name": "",
+  "name": "burger-web-app",
   "type": "module",
   "version": "0.0.1",
+  "author": "Jose Luis Cabanas (UlysesX12)",
+  "description": "Cinematic Astro website designed and developed by Jose Luis Cabanas for La Brasa Gamberra.",
   "engines": {
     "node": ">=22.12.0"
   },

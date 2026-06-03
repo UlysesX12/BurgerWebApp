@@ -1,46 +1,67 @@
-# Astro Starter Kit: Basics
+# La Brasa Gamberra
+
+Web cinematografica para una marca de smash burgers con estetica rock, brasa, video hero, fuego CSS, carta, pedidos prototipo y reservas.
+
+## Autor
+
+Proyecto disenado y desarrollado al completo por **Jose Luis Cabanas** (**UlysesX12**).
+
+Si reutilizas, clonas, presentas o publicas este proyecto o partes de el, por favor manten el credito visible al autor original.
+
+## Creditos de desarrollo
+
+- Direccion visual, estructura y experiencia web: **Jose Luis Cabanas / UlysesX12**
+- Desarrollo frontend Astro: **Jose Luis Cabanas / UlysesX12**
+- Concepto visual de marca, landing, carta, pedidos prototipo y reservas: **Jose Luis Cabanas / UlysesX12**
+
+## Estado del proyecto
+
+La web ya incluye:
+
+- Landing cinematografica con video hero.
+- Navegacion estilo evento.
+- Footer con fuego CSS, brasas y chispas.
+- Paginas publicas: carta, pedidos, reservas, contacto y sobre nosotros.
+- Carta estructurada desde `src/data/menu.ts`.
+- Prototipo de carrito local en `/takeaway`.
+- Prototipo de reservas en `/reservas`.
+- Roadmap tecnico para BBDD, pagos, pedidos reales, tickets y despliegue.
+
+Todavia no es una aplicacion de pedidos en produccion. El flujo de pedido y reservas esta planteado a nivel visual/local, pendiente de backend, base de datos y pasarela de pago.
+
+## Roadmap
+
+Consulta [ROADMAP.md](./ROADMAP.md) para ver los pendientes tecnicos: modelo de datos, endpoints, estados operativos, pagos, tickets/facturas y despliegue.
+
+## Desarrollo local
 
 ```sh
-npm create astro@latest -- --template basics
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+Servidor local por defecto:
 
 ```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+http://localhost:4321
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+En dev container/Docker, el proyecto se expone normalmente en:
 
-## 🧞 Commands
+```text
+http://localhost:4321
+```
 
-All commands are run from the root of the project, from a terminal:
+## Build
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+```sh
+npm run build
+```
 
-## 👀 Want to learn more?
+## Stack
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Astro
+- Tailwind CSS
+- CSS custom animations
+- Video hero optimizado para web
+- Prototipos frontend con estado local
