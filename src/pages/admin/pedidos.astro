@@ -251,11 +251,16 @@ import PageFrame from '../../components/PageFrame.astro';
         <footer>
           <strong>${escapeHtml(formatMoney(order.total))}</strong>
           <div>
-            <button type="button" data-print-order="${escapeHtml(order.id)}">Ticket</button>
+            <button type="button" class="ticket-action action-print" data-print-order="${escapeHtml(order.id)}">Ticket</button>
             ${actions
               .map(
                 ([status, label]) => `
-                  <button type="button" data-order-status="${status}" data-order-id="${escapeHtml(order.id)}">
+                  <button
+                    type="button"
+                    class="ticket-action action-${status}"
+                    data-order-status="${status}"
+                    data-order-id="${escapeHtml(order.id)}"
+                  >
                     ${label}
                   </button>
                 `,
@@ -513,6 +518,21 @@ import PageFrame from '../../components/PageFrame.astro';
     letter-spacing: 0.08em;
     padding: 0 0.9rem;
     text-transform: uppercase;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  }
+
+  .board-actions button:hover,
+  .order-ticket button:hover,
+  .board-actions button:focus-visible,
+  .order-ticket button:focus-visible {
+    outline: none;
+    transform: translateY(-2px);
+    filter: saturate(1.15) brightness(1.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.46),
+      0 0 0 3px rgba(255, 157, 37, 0.18),
+      0 1.1rem 2.4rem rgba(255, 75, 15, 0.34),
+      0 0 1.4rem rgba(255, 207, 106, 0.22);
   }
 
   .board-actions button.is-active {
@@ -520,6 +540,80 @@ import PageFrame from '../../components/PageFrame.astro';
     background:
       linear-gradient(180deg, #91ffbf, #37d87e 58%, #15924b),
       #37d87e;
+  }
+
+  .ticket-action {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ticket-action::before {
+    content: "";
+    position: absolute;
+    inset: -35%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.38), transparent 44%);
+    opacity: 0;
+    transform: translateX(-70%);
+    transition: opacity 160ms ease, transform 420ms ease;
+    pointer-events: none;
+  }
+
+  .ticket-action:hover::before,
+  .ticket-action:focus-visible::before {
+    opacity: 1;
+    transform: translateX(70%);
+  }
+
+  .ticket-action.action-preparing {
+    border-color: rgba(255, 157, 37, 0.7);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255, 240, 166, 0.9), transparent 17%),
+      linear-gradient(180deg, #ffcf6a, #ff8a16 58%, #df4a11);
+    box-shadow: 0 0.8rem 1.8rem rgba(255, 75, 15, 0.24), 0 0 1.2rem rgba(255, 157, 37, 0.2);
+  }
+
+  .ticket-action.action-ready {
+    border-color: rgba(115, 255, 174, 0.72);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(229, 255, 238, 0.92), transparent 17%),
+      linear-gradient(180deg, #95ffc0, #35d878 58%, #138b48);
+    box-shadow: 0 0.8rem 1.8rem rgba(45, 218, 121, 0.2), 0 0 1.2rem rgba(115, 255, 174, 0.18);
+  }
+
+  .ticket-action.action-delivered {
+    border-color: rgba(110, 231, 255, 0.68);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(231, 250, 255, 0.9), transparent 17%),
+      linear-gradient(180deg, #8cefff, #2bb9df 58%, #0d6f91);
+    box-shadow: 0 0.8rem 1.8rem rgba(43, 185, 223, 0.2), 0 0 1.2rem rgba(110, 231, 255, 0.18);
+  }
+
+  .ticket-action.action-cancelled {
+    border-color: rgba(255, 92, 74, 0.72);
+    color: #fff;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255, 178, 166, 0.56), transparent 17%),
+      linear-gradient(180deg, #ff6b53, #d92516 58%, #7f120b);
+    box-shadow: 0 0.8rem 1.8rem rgba(217, 37, 22, 0.22), 0 0 1.2rem rgba(255, 92, 74, 0.2);
+  }
+
+  .ticket-action.action-print {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06)),
+      rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0.8rem 1.8rem rgba(0, 0, 0, 0.24);
+  }
+
+  .ticket-action.action-print:hover,
+  .ticket-action.action-print:focus-visible {
+    border-color: rgba(255, 207, 106, 0.48);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 0 0 3px rgba(255, 207, 106, 0.13),
+      0 1rem 2.2rem rgba(0, 0, 0, 0.32),
+      0 0 1.2rem rgba(255, 207, 106, 0.16);
   }
 
   .metrics-row {
