@@ -17,6 +17,10 @@ pnpm-debug.log*
 .env
 .env.production
 
+# local runtime data and private notes
+.data/
+PROJECT_TECHNICAL_NOTES.txt
+
 # macOS-specific files
 .DS_Store
 

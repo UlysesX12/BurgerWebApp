@@ -21,7 +21,14 @@
     <a class="menu-link" href="/reservas"><span>04</span> Reservas</a>
     <a class="menu-link" href="/sobre-nosotros"><span>05</span> Sobre nosotros</a>
     <a class="menu-link" href="/contacto"><span>06</span> Contacto</a>
+    <a class="menu-link admin-link" href="/admin/pedidos"><span>07</span> Cocina</a>
   </nav>
+
+  <div class="menu-smoke" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
 
   <div class="menu-meta">
     <span>Jue-Dom · 20:00-00:30</span>
@@ -103,8 +110,10 @@
     place-items: center;
     border: 1px solid rgba(255, 157, 37, 0.48);
     border-radius: 50%;
-    background: #ff9d25;
-    box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.45), 0 0 2rem rgba(255, 94, 20, 0.38);
+    background:
+      radial-gradient(circle at 35% 28%, #fff0a6, transparent 18%),
+      linear-gradient(180deg, #ffc05f, #ff8a16 58%, #df4a11);
+    box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.45), 0 0 2rem rgba(255, 94, 20, 0.52);
     cursor: pointer;
   }
 
@@ -151,7 +160,9 @@
     place-items: center;
     padding: 6rem 1.25rem;
     background:
-      radial-gradient(circle at 50% 80%, rgba(255, 94, 20, 0.24), transparent 28rem),
+      radial-gradient(circle at 50% 80%, rgba(255, 94, 20, 0.28), transparent 28rem),
+      radial-gradient(circle at 18% 20%, rgba(255, 207, 106, 0.14), transparent 18rem),
+      radial-gradient(circle at 82% 24%, rgba(217, 37, 22, 0.15), transparent 20rem),
       rgba(3, 3, 2, 0.88);
     opacity: 0;
     pointer-events: none;
@@ -165,6 +176,8 @@
   }
 
   .menu-nav {
+    position: relative;
+    z-index: 2;
     display: grid;
     gap: clamp(0.4rem, 1.3vw, 0.9rem);
     width: min(980px, 100%);
@@ -184,6 +197,18 @@
     transition: color 180ms ease, transform 180ms ease;
   }
 
+  .menu-link::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    margin-left: auto;
+    background: linear-gradient(90deg, rgba(255, 157, 37, 0.52), transparent);
+    opacity: 0;
+    transform: scaleX(0.4);
+    transform-origin: left;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
   .menu-link span {
     color: #ff9d25;
     font-size: clamp(0.8rem, 1.5vw, 1.1rem);
@@ -193,6 +218,15 @@
   .menu-link:hover {
     color: #fff;
     transform: translateX(0.5rem);
+  }
+
+  .menu-link:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  .menu-link.admin-link {
+    color: rgba(255, 188, 98, 0.78);
   }
 
   .menu-meta {
@@ -207,6 +241,47 @@
     font-weight: 900;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+  }
+
+  .menu-smoke {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .menu-smoke span {
+    position: absolute;
+    bottom: -10%;
+    width: clamp(18rem, 32vw, 38rem);
+    height: clamp(18rem, 38vw, 42rem);
+    border-radius: 48% 52% 54% 46%;
+    background:
+      radial-gradient(ellipse at 40% 25%, rgba(255, 255, 255, 0.18), transparent 34%),
+      radial-gradient(ellipse at 65% 60%, rgba(255, 157, 37, 0.1), transparent 46%),
+      radial-gradient(ellipse at 46% 78%, rgba(205, 218, 229, 0.12), transparent 50%);
+    filter: blur(22px);
+    opacity: 0;
+    animation: menu-smoke-rise 8.5s ease-in-out infinite;
+  }
+
+  .menu-smoke span:nth-child(1) { left: 8%; animation-delay: -1s; }
+  .menu-smoke span:nth-child(2) { left: 38%; animation-delay: -4s; }
+  .menu-smoke span:nth-child(3) { right: 5%; animation-delay: -6.2s; }
+
+  @keyframes menu-smoke-rise {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 6rem, 0) scale(0.7) rotate(0deg);
+    }
+    22% {
+      opacity: 0.46;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(2rem, -32rem, 0) scale(1.5) rotate(14deg);
+    }
   }
 
   @media (max-width: 720px) {

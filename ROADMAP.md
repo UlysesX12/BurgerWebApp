@@ -6,14 +6,14 @@ La Brasa Gamberra ya tiene una base visual publica: landing, navegacion, paginas
 
 Proyecto disenado y desarrollado al completo por **Jose Luis Cabanas** (**UlysesX12**). Si se reutiliza, publica o presenta este trabajo, debe mantenerse el credito al autor original.
 
-## Pendiente antes de produccion
+## Pendiente antes de producción
 
 - Carta real con productos definitivos, precios, fotos, extras, alergenos y disponibilidad.
 - Carrito con cantidades, modificadores, notas de cocina y calculo de totales.
 - Checkout para recogida, delivery y datos de cliente.
 - Persistencia en base de datos para pedidos, lineas de pedido, clientes y reservas.
 - Panel interno para cocina con estados: recibido, preparando, listo, entregado y cancelado.
-- Sistema de reservas con disponibilidad, confirmacion y bloqueo de horarios.
+- Sistema de reservas con disponibilidad, confirmación y bloqueo de horarios.
 - Pasarela de pago, preferiblemente Stripe, con fallback de pago en local si aplica.
 - Generacion de ticket imprimible y, si el negocio lo requiere, factura PDF.
 - Paginas legales: privacidad, cookies, condiciones de compra y alergenos.
@@ -34,9 +34,9 @@ Proyecto disenado y desarrollado al completo por **Jose Luis Cabanas** (**Ulyses
 - `products`: nombre, descripcion, categoria, precio, activo, destacado, orden.
 - `product_options`: extras, modificadores, puntos de carne, tamanos y recargos.
 - `allergens`: catalogo de alergenos y relacion producto/alergeno.
-- `orders`: cliente, telefono, servicio, direccion, hora, estado, subtotal, total, metodo de pago.
+- `orders`: cliente, teléfono, servicio, direccion, hora, estado, subtotal, total, metodo de pago.
 - `order_items`: producto, cantidad, precio unitario, notas y extras seleccionados.
-- `reservations`: nombre, telefono, fecha, hora, personas, notas, estado.
+- `reservations`: nombre, teléfono, fecha, hora, personas, notas, estado.
 - `payments`: proveedor, payment intent, estado, importe y trazabilidad.
 - `tickets`: numeracion, datos fiscales, lineas y payload imprimible/PDF.
 

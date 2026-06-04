@@ -35,7 +35,7 @@ const categoryOrder: MenuCategory[] = ['burgers', 'entrantes', 'extras', 'bebida
                   <div class="tag-row">
                     {item.tags.map((tag) => <span>{tag}</span>)}
                   </div>
-                  <small>Alergenos: {item.allergens.length ? item.allergens.join(', ') : 'Sin alergenos principales declarados'}</small>
+                  <small>Alérgenos: {item.allergens.length ? item.allergens.join(', ') : 'Sin alergenos principales declarados'}</small>
                 </article>
               ))}
             </div>
@@ -71,11 +71,26 @@ const categoryOrder: MenuCategory[] = ['burgers', 'entrantes', 'extras', 'bebida
     min-height: 18rem;
   }
 
+  .product-card::after {
+    content: "";
+    position: absolute;
+    right: -3rem;
+    bottom: -4rem;
+    width: 11rem;
+    height: 11rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 91, 18, 0.28), transparent 66%);
+    filter: blur(4px);
+    pointer-events: none;
+  }
+
   .product-card.is-featured {
     border-color: rgba(255, 157, 37, 0.52);
     background:
-      linear-gradient(180deg, rgba(255, 157, 37, 0.16), rgba(255, 255, 255, 0.035)),
+      linear-gradient(145deg, rgba(255, 207, 106, 0.2), rgba(255, 255, 255, 0.035)),
+      radial-gradient(circle at 50% 0%, rgba(255, 75, 18, 0.2), transparent 14rem),
       rgba(16, 12, 9, 0.86);
+    box-shadow: 0 1.8rem 3.6rem rgba(0, 0, 0, 0.38), 0 0 2.2rem rgba(255, 91, 18, 0.14);
   }
 
   .product-topline {

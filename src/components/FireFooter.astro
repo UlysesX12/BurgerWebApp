@@ -7,7 +7,7 @@
     <div class="footer-brand">
       <span>La Brasa Gamberra</span>
       <strong>Smash, fuego y rock and roll</strong>
-      <p class="author-credit">Disenada y desarrollada al completo por Jose Luis Cabanas · UlysesX12</p>
+      <p class="author-credit">Diseñada y desarrollada al completo por Jose Luis Cabanas · UlysesX12</p>
     </div>
 
     <div class="footer-grid">
@@ -32,6 +32,9 @@
   </div>
 
   <div class="ember-bed" aria-hidden="true">
+    <span class="heat-haze"></span>
+    <span class="ash-glow ash-glow-1"></span>
+    <span class="ash-glow ash-glow-2"></span>
     <span class="flame flame-1"></span>
     <span class="flame flame-2"></span>
     <span class="flame flame-3"></span>
@@ -54,7 +57,8 @@
     min-height: 32rem;
     padding: clamp(4rem, 9vw, 8rem) 1.25rem 9rem;
     background:
-      radial-gradient(circle at 50% 100%, rgba(255, 90, 18, 0.42), transparent 25rem),
+      radial-gradient(circle at 50% 100%, rgba(255, 184, 69, 0.28), transparent 16rem),
+      radial-gradient(circle at 50% 100%, rgba(255, 90, 18, 0.48), transparent 28rem),
       linear-gradient(180deg, #050403, #020201 72%);
     color: #fff;
   }
@@ -147,13 +151,70 @@
     right: -10%;
     bottom: -4rem;
     z-index: 1;
-    height: 15rem;
+    height: 17rem;
     background:
-      radial-gradient(ellipse at 50% 100%, rgba(255, 184, 69, 0.56), transparent 42%),
-      radial-gradient(ellipse at 50% 82%, rgba(255, 59, 18, 0.38), transparent 58%),
-      linear-gradient(180deg, transparent, rgba(255, 72, 14, 0.16));
-    filter: saturate(1.2);
+      radial-gradient(ellipse at 50% 100%, rgba(255, 221, 121, 0.68), transparent 34%),
+      radial-gradient(ellipse at 50% 82%, rgba(255, 59, 18, 0.48), transparent 58%),
+      radial-gradient(ellipse at 35% 92%, rgba(255, 118, 27, 0.42), transparent 32%),
+      radial-gradient(ellipse at 70% 90%, rgba(196, 28, 12, 0.45), transparent 36%),
+      linear-gradient(180deg, transparent, rgba(255, 72, 14, 0.18));
+    filter: saturate(1.35) contrast(1.08);
   }
+
+  .ember-bed::before,
+  .ember-bed::after {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 3.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background:
+      repeating-linear-gradient(90deg, rgba(33, 12, 7, 0.95) 0 2.5rem, rgba(255, 91, 18, 0.46) 2.5rem 3rem),
+      radial-gradient(ellipse at center, rgba(255, 179, 67, 0.5), transparent 68%);
+    filter: blur(3px);
+    opacity: 0.86;
+  }
+
+  .ember-bed::after {
+    bottom: 2.2rem;
+    left: 18%;
+    right: 14%;
+    height: 1.35rem;
+    opacity: 0.58;
+    filter: blur(5px);
+  }
+
+  .heat-haze {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    bottom: 7rem;
+    height: 12rem;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent 18%, rgba(255, 209, 119, 0.09), transparent 36%),
+      radial-gradient(ellipse at 50% 100%, rgba(255, 195, 100, 0.18), transparent 68%);
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    opacity: 0.65;
+    animation: heat-waver 2.8s ease-in-out infinite;
+  }
+
+  .ash-glow {
+    position: absolute;
+    bottom: 4.8rem;
+    width: 20rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 198, 96, 0.46), rgba(255, 75, 16, 0.24) 46%, transparent 72%);
+    filter: blur(9px);
+    mix-blend-mode: screen;
+    animation: ash-pulse 2.4s ease-in-out infinite;
+  }
+
+  .ash-glow-1 { left: 18%; }
+  .ash-glow-2 { right: 18%; animation-delay: -1.2s; }
 
   .flame {
     position: absolute;
@@ -162,10 +223,10 @@
     height: 11rem;
     border-radius: 52% 48% 45% 55%;
     background:
-      radial-gradient(ellipse at 50% 70%, rgba(255, 234, 142, 0.82), transparent 33%),
-      radial-gradient(ellipse at 50% 48%, rgba(255, 121, 22, 0.78), transparent 58%),
-      radial-gradient(ellipse at 50% 70%, rgba(209, 35, 12, 0.62), transparent 70%);
-    filter: blur(2px);
+      radial-gradient(ellipse at 50% 72%, rgba(255, 247, 190, 0.92), transparent 27%),
+      radial-gradient(ellipse at 46% 50%, rgba(255, 151, 28, 0.86), transparent 54%),
+      radial-gradient(ellipse at 58% 72%, rgba(213, 30, 10, 0.74), transparent 72%);
+    filter: blur(1.6px) saturate(1.18);
     mix-blend-mode: screen;
     transform-origin: bottom;
     animation: flame-dance 1.8s ease-in-out infinite;
@@ -216,6 +277,30 @@
     50% {
       opacity: 0.96;
       transform: scaleX(1.1) scaleY(1.08) rotate(5deg);
+    }
+  }
+
+  @keyframes heat-waver {
+    0%,
+    100% {
+      opacity: 0.42;
+      transform: translateX(-1.4rem) skewX(-8deg);
+    }
+    50% {
+      opacity: 0.78;
+      transform: translateX(1.2rem) skewX(7deg);
+    }
+  }
+
+  @keyframes ash-pulse {
+    0%,
+    100% {
+      opacity: 0.34;
+      transform: scaleX(0.92);
+    }
+    50% {
+      opacity: 0.74;
+      transform: scaleX(1.12);
     }
   }
 

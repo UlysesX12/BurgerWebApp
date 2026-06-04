@@ -14,11 +14,16 @@ import FireFooter from '../components/FireFooter.astro';
         <meta name="author" content="Jose Luis Cabanas (UlysesX12)" />
         <meta
             name="description"
-            content="La Brasa Gamberra, web cinematografica disenada y desarrollada al completo por Jose Luis Cabanas."
+            content="La Brasa Gamberra, web cinematográfica diseñada y desarrollada al completo por Jose Luis Cabanas."
         />
         <title>La Brasa Gamberra | Smash Burgers</title>
     </head>
     <body>
+        <div class="site-atmosphere" aria-hidden="true">
+            <span class="stage-beam beam-left"></span>
+            <span class="stage-beam beam-right"></span>
+            <span class="heat-noise"></span>
+        </div>
         <Navegacion />
 
         <slot />
@@ -34,6 +39,15 @@ import FireFooter from '../components/FireFooter.astro';
 
     :root {
         color-scheme: dark;
+        --brasa-black: #030201;
+        --brasa-ink: #090604;
+        --brasa-card: rgba(16, 11, 7, 0.78);
+        --brasa-line: rgba(255, 255, 255, 0.13);
+        --brasa-ember: #ff4b12;
+        --brasa-orange: #ff9d25;
+        --brasa-gold: #ffcf6a;
+        --brasa-red: #d92516;
+        --brasa-smoke: rgba(206, 218, 229, 0.12);
     }
 
     html,
@@ -42,8 +56,162 @@ import FireFooter from '../components/FireFooter.astro';
         padding: 0;
         width: 100%;
         height: 100%;
-        background-color: #020617;
+        background:
+            radial-gradient(circle at 50% -10%, rgba(255, 157, 37, 0.16), transparent 32rem),
+            radial-gradient(circle at 14% 28%, rgba(217, 37, 22, 0.12), transparent 26rem),
+            var(--brasa-black);
         color: #ffffff;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        text-rendering: geometricPrecision;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+            radial-gradient(circle at 50% 100%, rgba(255, 85, 18, 0.12), transparent 38rem);
+        background-size: 82px 82px, 82px 82px, auto;
+        opacity: 0.34;
+        mask-image: linear-gradient(180deg, black, transparent 88%);
+    }
+
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+        mix-blend-mode: overlay;
+        opacity: 0.18;
+    }
+
+    body > *:not(.site-atmosphere) {
+        position: relative;
+        z-index: 1;
+    }
+
+    ::selection {
+        color: #160903;
+        background: var(--brasa-gold);
+    }
+
+    a,
+    button,
+    input,
+    select,
+    textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    button,
+    a {
+        touch-action: manipulation;
+    }
+
+    .site-atmosphere {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .stage-beam {
+        position: absolute;
+        top: -20vh;
+        width: 38vw;
+        height: 120vh;
+        background: linear-gradient(180deg, rgba(255, 193, 94, 0.18), transparent 72%);
+        filter: blur(22px);
+        opacity: 0.52;
+        mix-blend-mode: screen;
+        transform-origin: top;
+        animation: beam-sweep 8s ease-in-out infinite;
+    }
+
+    .beam-left {
+        left: -12vw;
+        transform: rotate(-18deg);
+    }
+
+    .beam-right {
+        right: -12vw;
+        transform: rotate(18deg);
+        animation-delay: -4s;
+    }
+
+    .heat-noise {
+        position: absolute;
+        left: -10%;
+        right: -10%;
+        bottom: -8%;
+        height: 40vh;
+        background:
+            radial-gradient(ellipse at 30% 100%, rgba(255, 82, 16, 0.22), transparent 42%),
+            radial-gradient(ellipse at 72% 100%, rgba(255, 195, 87, 0.17), transparent 38%),
+            linear-gradient(180deg, transparent, rgba(255, 80, 16, 0.08));
+        filter: blur(20px);
+        animation: global-heat 4.8s ease-in-out infinite;
+    }
+
+    @keyframes beam-sweep {
+        0%,
+        100% {
+            opacity: 0.34;
+            transform: rotate(-18deg) translateX(-2vw);
+        }
+        50% {
+            opacity: 0.64;
+            transform: rotate(-10deg) translateX(2vw);
+        }
+    }
+
+    .beam-right {
+        animation-name: beam-sweep-right;
+    }
+
+    @keyframes beam-sweep-right {
+        0%,
+        100% {
+            opacity: 0.32;
+            transform: rotate(18deg) translateX(2vw);
+        }
+        50% {
+            opacity: 0.58;
+            transform: rotate(10deg) translateX(-2vw);
+        }
+    }
+
+    @keyframes global-heat {
+        0%,
+        100% {
+            opacity: 0.45;
+            transform: translateX(-1rem) skewX(-5deg);
+        }
+        50% {
+            opacity: 0.78;
+            transform: translateX(1rem) skewX(5deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
     }
 </style>

@@ -9,7 +9,7 @@ const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
   <PageFrame
     kicker="Reservas"
     title="Mesa, brasa y ruido"
-    description="Reserva para venir con tu gente. La pantalla queda planteada para disponibilidad real, confirmacion automatica y gestion interna."
+    description="Reserva para venir con tu gente. La pantalla queda planteada para disponibilidad real, confirmación automatica y gestion interna."
   >
     <section class="content-section booking-layout">
       <div>
@@ -21,7 +21,7 @@ const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
         <div class="card-grid booking-rules">
           <article class="brasa-card">
             <h3>Grupos</h3>
-            <p>Para 7 o mas personas conviene confirmar por telefono o email.</p>
+            <p>Para 7 o mas personas conviene confirmar por teléfono o email.</p>
             <strong>Gestion especial</strong>
           </article>
           <article class="brasa-card">
@@ -30,8 +30,8 @@ const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
             <strong>Prime time</strong>
           </article>
           <article class="brasa-card">
-            <h3>Confirmacion</h3>
-            <p>El siguiente paso tecnico sera guardar la reserva en BBDD y enviar confirmacion.</p>
+            <h3>Confirmación</h3>
+            <p>El siguiente paso tecnico sera guardar la reserva en BBDD y enviar confirmación.</p>
             <strong>Pendiente backend</strong>
           </article>
         </div>
@@ -44,7 +44,7 @@ const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
           <input name="name" autocomplete="name" placeholder="Tu nombre" />
         </label>
         <label>
-          Telefono
+          Teléfono
           <input name="phone" autocomplete="tel" placeholder="+34 ..." />
         </label>
         <label>
@@ -89,7 +89,7 @@ const slots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
   reservationForm?.addEventListener('submit', (event) => {
     event.preventDefault();
     if (reservationStatus) {
-      reservationStatus.textContent = 'Reserva preparada. Pendiente: API, BBDD, confirmacion y panel interno.';
+      reservationStatus.textContent = 'Reserva preparada. Pendiente: API, BBDD, confirmación y panel interno.';
     }
   });
 </script>

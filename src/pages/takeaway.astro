@@ -36,7 +36,7 @@ const extras = menuItems.filter((item) => item.category === 'extras');
                     data-name={item.name}
                     data-price={item.price}
                   >
-                    Anadir
+                    Añadir
                   </button>
                 </div>
               </article>
@@ -63,7 +63,7 @@ const extras = menuItems.filter((item) => item.category === 'extras');
                     data-name={item.name}
                     data-price={item.price}
                   >
-                    Anadir
+                    Añadir
                   </button>
                 </div>
               </article>
@@ -79,17 +79,17 @@ const extras = menuItems.filter((item) => item.category === 'extras');
         </div>
 
         <div class="cart-items" data-cart-items>
-          <p class="empty-cart">Todavia no hay fuego en la cesta.</p>
+          <p class="empty-cart">Todavía no hay fuego en la cesta.</p>
         </div>
 
         <form class="checkout-form" data-checkout-form>
           <label>
             Nombre
-            <input name="name" autocomplete="name" placeholder="Tu nombre" />
+            <input name="name" autocomplete="name" placeholder="Tu nombre" required />
           </label>
           <label>
-            Telefono
-            <input name="phone" autocomplete="tel" placeholder="+34 ..." />
+            Teléfono
+            <input name="phone" autocomplete="tel" placeholder="+34 ..." required />
           </label>
           <label>
             Servicio
@@ -107,8 +107,8 @@ const extras = menuItems.filter((item) => item.category === 'extras');
             <textarea name="notes" rows="3" placeholder="Sin cebolla, punto de carne, portal..."></textarea>
           </label>
 
-          <button type="submit">Preparar pedido</button>
-          <small data-order-status>Prototipo local: el siguiente paso es guardar este pedido en BBDD.</small>
+          <button type="submit" data-submit-order>Enviar comanda</button>
+          <small data-order-status>Servidor local listo: al enviar, la comanda entra en /admin/pedidos.</small>
         </form>
       </aside>
     </section>
@@ -121,6 +121,7 @@ const extras = menuItems.filter((item) => item.category === 'extras');
   const cartTotalNode = document.querySelector('[data-cart-total]');
   const checkoutForm = document.querySelector('[data-checkout-form]');
   const orderStatus = document.querySelector('[data-order-status]');
+  const submitOrderButton = document.querySelector('[data-submit-order]');
   const addButtons = document.querySelectorAll('[data-add-item]');
 
   /** @type {Array<{id: string; name: string; price: number; quantity: number}>} */
@@ -149,7 +150,7 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     if (!cartItemsNode || !cartTotalNode) return;
 
     if (!cart.length) {
-      cartItemsNode.innerHTML = '<p class="empty-cart">Todavia no hay fuego en la cesta.</p>';
+      cartItemsNode.innerHTML = '<p class="empty-cart">Todavía no hay fuego en la cesta.</p>';
       cartTotalNode.textContent = formatMoney(0);
       return;
     }
@@ -215,16 +216,63 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     });
   });
 
-  checkoutForm?.addEventListener('submit', (event) => {
+  checkoutForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!orderStatus) return;
+    if (!orderStatus || !(checkoutForm instanceof HTMLFormElement)) return;
 
     if (!cart.length) {
-      orderStatus.textContent = 'Anade algun producto antes de preparar el pedido.';
+      orderStatus.textContent = 'Añade algún producto antes de enviar la comanda.';
       return;
     }
 
-    orderStatus.textContent = 'Pedido preparado en local. Pendiente: endpoint API, BBDD, pago y ticket.';
+    const formData = new FormData(checkoutForm);
+    const payload = {
+      customer: {
+        name: String(formData.get('name') || ''),
+        phone: String(formData.get('phone') || ''),
+        service: String(formData.get('service') || 'pickup'),
+        time: String(formData.get('time') || ''),
+        notes: String(formData.get('notes') || ''),
+      },
+      items: cart.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+      })),
+    };
+
+    orderStatus.textContent = 'Enviando comanda al servidor local...';
+    if (submitOrderButton instanceof HTMLButtonElement) {
+      submitOrderButton.disabled = true;
+      submitOrderButton.textContent = 'Enviando';
+    }
+
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'No se pudo enviar el pedido.');
+      }
+
+      cart = [];
+      saveCart();
+      renderCart();
+      checkoutForm.reset();
+      orderStatus.textContent = `Comanda recibida por cocina: ${result.order.id}.`;
+    } catch (error) {
+      orderStatus.textContent = error instanceof Error ? error.message : 'No se pudo enviar el pedido.';
+    } finally {
+      if (submitOrderButton instanceof HTMLButtonElement) {
+        submitOrderButton.disabled = false;
+        submitOrderButton.textContent = 'Enviar comanda';
+      }
+    }
   });
 
   loadCart();
@@ -249,15 +297,42 @@ const extras = menuItems.filter((item) => item.category === 'extras');
   }
 
   .order-item {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 1rem;
     padding: 1rem;
+    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.028)),
+      radial-gradient(circle at 8% 0%, rgba(255, 157, 37, 0.12), transparent 10rem),
       rgba(11, 9, 7, 0.82);
+    box-shadow: 0 1.2rem 2.5rem rgba(0, 0, 0, 0.28);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .order-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255, 207, 106, 0.12), transparent 42%);
+    opacity: 0;
+    transform: translateX(-40%);
+    transition: opacity 180ms ease, transform 420ms ease;
+    pointer-events: none;
+  }
+
+  .order-item:hover {
+    transform: translateY(-0.22rem);
+    border-color: rgba(255, 207, 106, 0.32);
+    box-shadow: 0 1.8rem 3.4rem rgba(0, 0, 0, 0.38), 0 0 2rem rgba(255, 77, 18, 0.12);
+  }
+
+  .order-item:hover::before {
+    opacity: 1;
+    transform: translateX(38%);
   }
 
   .order-item span {
@@ -307,13 +382,31 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     border: 1px solid rgba(255, 157, 37, 0.5);
     border-radius: 8px;
     color: #140b04;
-    background: #ff9d25;
+    background:
+      linear-gradient(180deg, #ffc05f, #ff8a16 58%, #df4a11),
+      #ff9d25;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 0.85rem 1.8rem rgba(255, 75, 15, 0.22);
     cursor: pointer;
     font: inherit;
     font-size: 0.78rem;
     font-weight: 950;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  }
+
+  .order-item-action button:hover,
+  .checkout-form button:hover,
+  .cart-controls button:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.12) brightness(1.05);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48), 0 1rem 2.2rem rgba(255, 75, 15, 0.32);
+  }
+
+  .checkout-form button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+    transform: none;
   }
 
   .order-item-action button {
@@ -325,12 +418,26 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     position: sticky;
     top: 1rem;
     padding: 1rem;
-    border: 1px solid rgba(255, 157, 37, 0.28);
+    overflow: hidden;
+    border: 1px solid rgba(255, 207, 106, 0.32);
     border-radius: 8px;
     background:
-      radial-gradient(circle at 50% 0%, rgba(255, 105, 23, 0.18), transparent 18rem),
+      radial-gradient(circle at 50% 0%, rgba(255, 207, 106, 0.16), transparent 14rem),
+      radial-gradient(circle at 90% 100%, rgba(217, 37, 22, 0.18), transparent 12rem),
       rgba(9, 7, 5, 0.92);
-    box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.35);
+    box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.42), 0 0 2.5rem rgba(255, 80, 18, 0.12);
+  }
+
+  .cart-panel::before {
+    content: "";
+    position: absolute;
+    left: -30%;
+    right: -30%;
+    top: -1px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #ffcf6a, #ff4b12, #ffcf6a, transparent);
+    filter: blur(1px);
+    animation: cart-burn 3.2s ease-in-out infinite;
   }
 
   .cart-head {
@@ -371,6 +478,10 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     gap: 0.75rem;
     align-items: center;
     justify-content: space-between;
+    padding: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.18);
   }
 
   .cart-line strong,
@@ -427,6 +538,16 @@ const extras = menuItems.filter((item) => item.category === 'extras');
     background: rgba(0, 0, 0, 0.32);
     font: inherit;
     padding: 0.75rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  }
+
+  .checkout-form input:focus,
+  .checkout-form select:focus,
+  .checkout-form textarea:focus {
+    outline: none;
+    border-color: rgba(255, 207, 106, 0.58);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow: 0 0 0 3px rgba(255, 157, 37, 0.12), 0 0 1.4rem rgba(255, 75, 15, 0.16);
   }
 
   .checkout-form button {
@@ -452,6 +573,18 @@ const extras = menuItems.filter((item) => item.category === 'extras');
       grid-template-columns: auto auto;
       justify-items: start;
       justify-content: space-between;
+    }
+  }
+
+  @keyframes cart-burn {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: translateX(-10%);
+    }
+    50% {
+      opacity: 1;
+      transform: translateX(10%);
     }
   }
 </style>

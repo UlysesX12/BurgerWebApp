@@ -1,0 +1,420 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageFrame from '../../components/PageFrame.astro';
+---
+
+<Layout>
+  <PageFrame
+    kicker="Cocina local"
+    title="Comandas en vivo"
+    description="Panel provisional para probar que los pedidos enviados desde takeaway llegan al servidor local."
+  >
+    <section class="content-section kitchen-board">
+      <div class="board-toolbar">
+        <div>
+          <h2 class="section-title">Pedidos recibidos</h2>
+          <p data-board-status>Esperando comandas...</p>
+        </div>
+        <button type="button" data-refresh-orders>Actualizar</button>
+      </div>
+
+      <div class="orders-grid" data-orders-grid>
+        <article class="empty-board">
+          <strong>Sin comandas</strong>
+          <span>Haz un pedido desde /takeaway y aparecerá aquí.</span>
+        </article>
+      </div>
+    </section>
+  </PageFrame>
+</Layout>
+
+<script>
+  const ordersGrid = document.querySelector('[data-orders-grid]');
+  const boardStatus = document.querySelector('[data-board-status]');
+  const refreshButton = document.querySelector('[data-refresh-orders]');
+
+  const statusLabels = {
+    received: 'Recibido',
+    preparing: 'Preparando',
+    ready: 'Listo',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
+  };
+
+  const nextActions = [
+    ['preparing', 'Preparar'],
+    ['ready', 'Listo'],
+    ['delivered', 'Entregar'],
+    ['cancelled', 'Cancelar'],
+  ];
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(value);
+  }
+
+  function formatTime(value) {
+    return new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+    }).format(new Date(value));
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function renderOrders(orders) {
+    if (!ordersGrid) return;
+
+    if (!orders.length) {
+      ordersGrid.innerHTML = `
+        <article class="empty-board">
+          <strong>Sin comandas</strong>
+          <span>Haz un pedido desde /takeaway y aparecerá aquí.</span>
+        </article>
+      `;
+      return;
+    }
+
+    ordersGrid.innerHTML = orders
+      .map(
+        (order) => `
+          <article class="order-ticket status-${order.status}">
+            <header>
+              <div>
+                <span>${escapeHtml(formatTime(order.createdAt))}</span>
+                <h3>${escapeHtml(order.id)}</h3>
+              </div>
+              <strong>${escapeHtml(statusLabels[order.status] || order.status)}</strong>
+            </header>
+
+            <div class="customer-line">
+              <b>${escapeHtml(order.customer.name)}</b>
+              <a href="tel:${escapeHtml(order.customer.phone)}">${escapeHtml(order.customer.phone)}</a>
+              <span>${order.customer.service === 'delivery' ? 'Delivery' : 'Recogida'}${order.customer.time ? ` · ${escapeHtml(order.customer.time)}` : ''}</span>
+            </div>
+
+            <ul>
+              ${order.items
+                .map(
+                  (item) => `
+                    <li>
+                      <span>${item.quantity}x ${escapeHtml(item.name)}</span>
+                      <strong>${escapeHtml(formatMoney(item.lineTotal))}</strong>
+                    </li>
+                  `,
+                )
+                .join('')}
+            </ul>
+
+            ${order.customer.notes ? `<p class="ticket-notes">${escapeHtml(order.customer.notes)}</p>` : ''}
+
+            <footer>
+              <strong>${escapeHtml(formatMoney(order.total))}</strong>
+              <div>
+                ${nextActions
+                  .map(
+                    ([status, label]) => `
+                      <button type="button" data-order-status="${status}" data-order-id="${escapeHtml(order.id)}">
+                        ${label}
+                      </button>
+                    `,
+                  )
+                  .join('')}
+              </div>
+            </footer>
+          </article>
+        `,
+      )
+      .join('');
+
+    ordersGrid.querySelectorAll('[data-order-status]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!(button instanceof HTMLButtonElement)) return;
+        updateStatus(button.dataset.orderId || '', button.dataset.orderStatus || '');
+      });
+    });
+  }
+
+  async function loadOrders() {
+    if (boardStatus) boardStatus.textContent = 'Actualizando comandas...';
+
+    try {
+      const response = await fetch('/api/orders', { cache: 'no-store' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'No se pudieron cargar los pedidos.');
+      }
+
+      renderOrders(result.orders || []);
+      if (boardStatus) {
+        boardStatus.textContent = `${(result.orders || []).length} comandas en memoria local.`;
+      }
+    } catch (error) {
+      if (boardStatus) {
+        boardStatus.textContent = error instanceof Error ? error.message : 'No se pudieron cargar los pedidos.';
+      }
+    }
+  }
+
+  async function updateStatus(id, status) {
+    if (!id || !status) return;
+
+    await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ id, status }),
+    });
+    loadOrders();
+  }
+
+  refreshButton?.addEventListener('click', loadOrders);
+  loadOrders();
+  window.setInterval(loadOrders, 4000);
+</script>
+
+<style>
+  .kitchen-board {
+    padding-top: clamp(2rem, 5vw, 4rem);
+  }
+
+  .board-toolbar {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .board-toolbar .section-title {
+    margin-bottom: 0.45rem;
+  }
+
+  .board-toolbar p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.58);
+    font-weight: 850;
+  }
+
+  .board-toolbar button,
+  .order-ticket button {
+    min-height: 2.7rem;
+    border: 1px solid rgba(255, 157, 37, 0.42);
+    border-radius: 8px;
+    color: #140b04;
+    background:
+      linear-gradient(180deg, #ffc05f, #ff8a16 58%, #df4a11),
+      #ff9d25;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38), 0 0.8rem 1.8rem rgba(255, 75, 15, 0.18);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    padding: 0 0.9rem;
+    text-transform: uppercase;
+  }
+
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .empty-board,
+  .order-ticket {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 207, 106, 0.17), transparent 14rem),
+      radial-gradient(circle at 100% 100%, rgba(217, 37, 22, 0.14), transparent 12rem),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035)),
+      rgba(11, 9, 7, 0.88);
+    box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.32);
+  }
+
+  .empty-board {
+    display: grid;
+    gap: 0.4rem;
+    min-height: 12rem;
+    place-content: center;
+    text-align: center;
+  }
+
+  .empty-board strong {
+    color: #ffbc62;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  .empty-board span {
+    color: rgba(255, 255, 255, 0.58);
+  }
+
+  .order-ticket {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    overflow: hidden;
+  }
+
+  .order-ticket::before {
+    content: "";
+    position: absolute;
+    left: -20%;
+    right: -20%;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ffcf6a, #ff4b12, transparent);
+    filter: blur(1px);
+    opacity: 0.82;
+    animation: ticket-fireline 2.8s ease-in-out infinite;
+  }
+
+  .order-ticket header,
+  .order-ticket footer,
+  .order-ticket li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .order-ticket header {
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .order-ticket header span,
+  .customer-line span {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .order-ticket h3 {
+    margin: 0.25rem 0 0;
+    font-size: 1.2rem;
+  }
+
+  .order-ticket header > strong {
+    border: 1px solid rgba(255, 188, 98, 0.3);
+    border-radius: 999px;
+    color: #ffbc62;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+  }
+
+  .customer-line {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .customer-line a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .order-ticket ul {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .order-ticket li {
+    padding: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .ticket-notes {
+    margin: 0;
+    padding: 0.75rem;
+    border-left: 3px solid #ff9d25;
+    color: rgba(255, 255, 255, 0.74);
+    background: rgba(255, 157, 37, 0.08);
+    line-height: 1.45;
+  }
+
+  .order-ticket footer {
+    align-items: end;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .order-ticket footer > strong {
+    color: #ffbc62;
+    font-size: 1.6rem;
+  }
+
+  .order-ticket footer div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: end;
+  }
+
+  .order-ticket.status-ready {
+    border-color: rgba(88, 255, 163, 0.34);
+    box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.32), 0 0 2rem rgba(88, 255, 163, 0.12);
+  }
+
+  .order-ticket.status-cancelled {
+    opacity: 0.58;
+  }
+
+  @media (max-width: 980px) {
+    .orders-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .board-toolbar,
+    .order-ticket footer {
+      display: grid;
+      align-items: start;
+    }
+
+    .orders-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .order-ticket footer div {
+      justify-content: start;
+    }
+  }
+
+  @keyframes ticket-fireline {
+    0%,
+    100% {
+      transform: translateX(-8%);
+      opacity: 0.45;
+    }
+    50% {
+      transform: translateX(8%);
+      opacity: 1;
+    }
+  }
+</style>

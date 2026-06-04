@@ -1,6 +1,6 @@
 # La Brasa Gamberra
 
-Web cinematografica para una marca de smash burgers con estetica rock, brasa, video hero, fuego CSS, carta, pedidos prototipo y reservas.
+Web cinematográfica para una marca de smash burgers con estetica rock, brasa, video hero, fuego CSS, carta, pedidos prototipo y reservas.
 
 ## Autor
 
@@ -18,7 +18,7 @@ Si reutilizas, clonas, presentas o publicas este proyecto o partes de el, por fa
 
 La web ya incluye:
 
-- Landing cinematografica con video hero.
+- Landing cinematográfica con video hero.
 - Navegacion estilo evento.
 - Footer con fuego CSS, brasas y chispas.
 - Paginas publicas: carta, pedidos, reservas, contacto y sobre nosotros.
@@ -27,7 +27,7 @@ La web ya incluye:
 - Prototipo de reservas en `/reservas`.
 - Roadmap tecnico para BBDD, pagos, pedidos reales, tickets y despliegue.
 
-Todavia no es una aplicacion de pedidos en produccion. El flujo de pedido y reservas esta planteado a nivel visual/local, pendiente de backend, base de datos y pasarela de pago.
+Todavía no es una aplicación de pedidos en producción. El flujo de pedido y reservas esta planteado a nivel visual/local, pendiente de backend, base de datos y pasarela de pago.
 
 ## Roadmap
 
