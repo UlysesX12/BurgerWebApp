@@ -7,31 +7,95 @@ import PageFrame from '../../components/PageFrame.astro';
   <PageFrame
     kicker="Cocina local"
     title="Comandas en vivo"
-    description="Panel provisional para probar que los pedidos enviados desde takeaway llegan al servidor local."
+    description="Panel operativo para recibir pedidos, mover estados e imprimir tickets desde el servidor local."
   >
-    <section class="content-section kitchen-board">
+    <section class="content-section kitchen-board" data-kitchen-board>
       <div class="board-toolbar">
         <div>
-          <h2 class="section-title">Pedidos recibidos</h2>
+          <h2 class="section-title">Central de cocina</h2>
           <p data-board-status>Esperando comandas...</p>
         </div>
-        <button type="button" data-refresh-orders>Actualizar</button>
+
+        <div class="board-actions">
+          <label class="closed-toggle">
+            <input type="checkbox" data-hide-closed checked />
+            Ocultar cerrados
+          </label>
+          <button type="button" data-enable-sound>Sonido</button>
+          <button type="button" data-refresh-orders>Actualizar</button>
+        </div>
       </div>
 
-      <div class="orders-grid" data-orders-grid>
-        <article class="empty-board">
-          <strong>Sin comandas</strong>
-          <span>Haz un pedido desde /takeaway y aparecerá aquí.</span>
+      <div class="metrics-row" aria-label="Resumen de comandas">
+        <article>
+          <span>Activas</span>
+          <strong data-metric-active>0</strong>
         </article>
+        <article>
+          <span>Recibidas</span>
+          <strong data-metric-received>0</strong>
+        </article>
+        <article>
+          <span>Preparando</span>
+          <strong data-metric-preparing>0</strong>
+        </article>
+        <article>
+          <span>Listas</span>
+          <strong data-metric-ready>0</strong>
+        </article>
+      </div>
+
+      <div class="kitchen-columns" data-kitchen-columns>
+        <section class="order-column" data-status-column="received">
+          <header>
+            <span>01</span>
+            <h3>Recibido</h3>
+            <strong data-count-received>0</strong>
+          </header>
+          <div class="column-orders" data-column-orders="received"></div>
+        </section>
+
+        <section class="order-column" data-status-column="preparing">
+          <header>
+            <span>02</span>
+            <h3>Preparando</h3>
+            <strong data-count-preparing>0</strong>
+          </header>
+          <div class="column-orders" data-column-orders="preparing"></div>
+        </section>
+
+        <section class="order-column" data-status-column="ready">
+          <header>
+            <span>03</span>
+            <h3>Listo</h3>
+            <strong data-count-ready>0</strong>
+          </header>
+          <div class="column-orders" data-column-orders="ready"></div>
+        </section>
+
+        <section class="order-column closed-column" data-status-column="closed">
+          <header>
+            <span>04</span>
+            <h3>Cerrados</h3>
+            <strong data-count-closed>0</strong>
+          </header>
+          <div class="column-orders" data-column-orders="closed"></div>
+        </section>
       </div>
     </section>
   </PageFrame>
 </Layout>
 
 <script>
-  const ordersGrid = document.querySelector('[data-orders-grid]');
+  const board = document.querySelector('[data-kitchen-board]');
   const boardStatus = document.querySelector('[data-board-status]');
   const refreshButton = document.querySelector('[data-refresh-orders]');
+  const soundButton = document.querySelector('[data-enable-sound]');
+  const hideClosedInput = document.querySelector('[data-hide-closed]');
+  const activeMetric = document.querySelector('[data-metric-active]');
+  const receivedMetric = document.querySelector('[data-metric-received]');
+  const preparingMetric = document.querySelector('[data-metric-preparing]');
+  const readyMetric = document.querySelector('[data-metric-ready]');
 
   const statusLabels = {
     received: 'Recibido',
@@ -41,12 +105,27 @@ import PageFrame from '../../components/PageFrame.astro';
     cancelled: 'Cancelado',
   };
 
-  const nextActions = [
-    ['preparing', 'Preparar'],
-    ['ready', 'Listo'],
-    ['delivered', 'Entregar'],
-    ['cancelled', 'Cancelar'],
-  ];
+  const actionLabels = {
+    received: [
+      ['preparing', 'Preparar'],
+      ['cancelled', 'Cancelar'],
+    ],
+    preparing: [
+      ['ready', 'Listo'],
+      ['cancelled', 'Cancelar'],
+    ],
+    ready: [
+      ['delivered', 'Entregar'],
+      ['preparing', 'Volver'],
+    ],
+    delivered: [['ready', 'Reabrir']],
+    cancelled: [['received', 'Reabrir']],
+  };
+
+  let knownOrderIds = new Set();
+  let firstLoad = true;
+  let soundEnabled = false;
+  let audioContext;
 
   function formatMoney(value) {
     return new Intl.NumberFormat('es-ES', {
@@ -73,75 +152,170 @@ import PageFrame from '../../components/PageFrame.astro';
       .replaceAll("'", '&#039;');
   }
 
-  function renderOrders(orders) {
-    if (!ordersGrid) return;
+  function getColumnStatus(status) {
+    return status === 'delivered' || status === 'cancelled' ? 'closed' : status;
+  }
 
-    if (!orders.length) {
-      ordersGrid.innerHTML = `
-        <article class="empty-board">
-          <strong>Sin comandas</strong>
-          <span>Haz un pedido desde /takeaway y aparecerá aquí.</span>
-        </article>
-      `;
-      return;
+  function getOrdersForColumn(orders, columnStatus) {
+    return orders.filter((order) => getColumnStatus(order.status) === columnStatus);
+  }
+
+  function setText(selector, value) {
+    const node = document.querySelector(selector);
+    if (node) node.textContent = String(value);
+  }
+
+  function playNewOrderSound() {
+    if (!soundEnabled) return;
+
+    try {
+      audioContext ||= new AudioContext();
+      const now = audioContext.currentTime;
+
+      [540, 720, 940].forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(frequency, now + index * 0.08);
+        gain.gain.setValueAtTime(0.0001, now + index * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.08, now + index * 0.08 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.08 + 0.16);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now + index * 0.08);
+        oscillator.stop(now + index * 0.08 + 0.18);
+      });
+    } catch {
+      soundEnabled = false;
     }
+  }
 
-    ordersGrid.innerHTML = orders
-      .map(
-        (order) => `
-          <article class="order-ticket status-${order.status}">
-            <header>
-              <div>
-                <span>${escapeHtml(formatTime(order.createdAt))}</span>
-                <h3>${escapeHtml(order.id)}</h3>
-              </div>
-              <strong>${escapeHtml(statusLabels[order.status] || order.status)}</strong>
-            </header>
+  function signalNewOrders(count) {
+    if (!count) return;
 
-            <div class="customer-line">
-              <b>${escapeHtml(order.customer.name)}</b>
-              <a href="tel:${escapeHtml(order.customer.phone)}">${escapeHtml(order.customer.phone)}</a>
-              <span>${order.customer.service === 'delivery' ? 'Delivery' : 'Recogida'}${order.customer.time ? ` · ${escapeHtml(order.customer.time)}` : ''}</span>
-            </div>
+    board?.classList.add('has-new-order');
+    if (boardStatus) {
+      boardStatus.textContent = `${count} comanda${count === 1 ? '' : 's'} nueva${count === 1 ? '' : 's'} en cocina.`;
+    }
+    playNewOrderSound();
+    window.setTimeout(() => board?.classList.remove('has-new-order'), 2200);
+  }
 
-            <ul>
-              ${order.items
-                .map(
-                  (item) => `
-                    <li>
-                      <span>${item.quantity}x ${escapeHtml(item.name)}</span>
-                      <strong>${escapeHtml(formatMoney(item.lineTotal))}</strong>
-                    </li>
-                  `,
-                )
-                .join('')}
-            </ul>
+  function renderEmptyColumn(column, label) {
+    column.innerHTML = `
+      <article class="empty-board">
+        <strong>Sin comandas</strong>
+        <span>${label}</span>
+      </article>
+    `;
+  }
 
-            ${order.customer.notes ? `<p class="ticket-notes">${escapeHtml(order.customer.notes)}</p>` : ''}
+  function renderOrderCard(order) {
+    const actions = actionLabels[order.status] || [];
+    const service = order.customer.service === 'delivery' ? 'Delivery' : 'Recogida';
+    const serviceLine = `${service}${order.customer.time ? ` · ${escapeHtml(order.customer.time)}` : ''}`;
 
-            <footer>
-              <strong>${escapeHtml(formatMoney(order.total))}</strong>
-              <div>
-                ${nextActions
-                  .map(
-                    ([status, label]) => `
-                      <button type="button" data-order-status="${status}" data-order-id="${escapeHtml(order.id)}">
-                        ${label}
-                      </button>
-                    `,
-                  )
-                  .join('')}
-              </div>
-            </footer>
-          </article>
-        `,
-      )
-      .join('');
+    return `
+      <article class="order-ticket status-${order.status}" data-ticket-id="${escapeHtml(order.id)}">
+        <header>
+          <div>
+            <span>${escapeHtml(formatTime(order.createdAt))}</span>
+            <h4>${escapeHtml(order.id)}</h4>
+          </div>
+          <strong>${escapeHtml(statusLabels[order.status] || order.status)}</strong>
+        </header>
 
-    ordersGrid.querySelectorAll('[data-order-status]').forEach((button) => {
+        <div class="customer-line">
+          <b>${escapeHtml(order.customer.name)}</b>
+          <a href="tel:${escapeHtml(order.customer.phone)}">${escapeHtml(order.customer.phone)}</a>
+          <span>${serviceLine}</span>
+        </div>
+
+        <ul>
+          ${order.items
+            .map(
+              (item) => `
+                <li>
+                  <span>${item.quantity}x ${escapeHtml(item.name)}</span>
+                  <strong>${escapeHtml(formatMoney(item.lineTotal))}</strong>
+                </li>
+              `,
+            )
+            .join('')}
+        </ul>
+
+        ${order.customer.notes ? `<p class="ticket-notes">${escapeHtml(order.customer.notes)}</p>` : ''}
+
+        <footer>
+          <strong>${escapeHtml(formatMoney(order.total))}</strong>
+          <div>
+            <button type="button" data-print-order="${escapeHtml(order.id)}">Ticket</button>
+            ${actions
+              .map(
+                ([status, label]) => `
+                  <button type="button" data-order-status="${status}" data-order-id="${escapeHtml(order.id)}">
+                    ${label}
+                  </button>
+                `,
+              )
+              .join('')}
+          </div>
+        </footer>
+      </article>
+    `;
+  }
+
+  function updateMetrics(orders) {
+    const received = orders.filter((order) => order.status === 'received').length;
+    const preparing = orders.filter((order) => order.status === 'preparing').length;
+    const ready = orders.filter((order) => order.status === 'ready').length;
+    const active = received + preparing + ready;
+    const closed = orders.filter((order) => getColumnStatus(order.status) === 'closed').length;
+
+    if (activeMetric) activeMetric.textContent = String(active);
+    if (receivedMetric) receivedMetric.textContent = String(received);
+    if (preparingMetric) preparingMetric.textContent = String(preparing);
+    if (readyMetric) readyMetric.textContent = String(ready);
+
+    setText('[data-count-received]', received);
+    setText('[data-count-preparing]', preparing);
+    setText('[data-count-ready]', ready);
+    setText('[data-count-closed]', closed);
+  }
+
+  function renderOrders(orders) {
+    const columns = ['received', 'preparing', 'ready', 'closed'];
+
+    updateMetrics(orders);
+
+    columns.forEach((columnStatus) => {
+      const column = document.querySelector(`[data-column-orders="${columnStatus}"]`);
+      if (!column) return;
+
+      const columnOrders = getOrdersForColumn(orders, columnStatus);
+      if (!columnOrders.length) {
+        const label = columnStatus === 'closed' ? 'Entregados y cancelados apareceran aqui.' : 'La cocina esta limpia.';
+        renderEmptyColumn(column, label);
+        return;
+      }
+
+      column.innerHTML = columnOrders.map(renderOrderCard).join('');
+    });
+
+    document.querySelectorAll('[data-order-status]').forEach((button) => {
       button.addEventListener('click', () => {
         if (!(button instanceof HTMLButtonElement)) return;
         updateStatus(button.dataset.orderId || '', button.dataset.orderStatus || '');
+      });
+    });
+
+    document.querySelectorAll('[data-print-order]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!(button instanceof HTMLButtonElement)) return;
+        const order = orders.find((entry) => entry.id === button.dataset.printOrder);
+        if (order) printOrder(order);
       });
     });
   }
@@ -157,9 +331,19 @@ import PageFrame from '../../components/PageFrame.astro';
         throw new Error(result.error || 'No se pudieron cargar los pedidos.');
       }
 
-      renderOrders(result.orders || []);
-      if (boardStatus) {
-        boardStatus.textContent = `${(result.orders || []).length} comandas en memoria local.`;
+      const orders = result.orders || [];
+      const currentIds = new Set(orders.map((order) => order.id));
+      const newOrders = firstLoad ? [] : orders.filter((order) => !knownOrderIds.has(order.id));
+
+      knownOrderIds = currentIds;
+      firstLoad = false;
+
+      renderOrders(orders);
+      signalNewOrders(newOrders.length);
+
+      if (!newOrders.length && boardStatus) {
+        const activeCount = orders.filter((order) => ['received', 'preparing', 'ready'].includes(order.status)).length;
+        boardStatus.textContent = `${activeCount} comandas activas · ${orders.length} guardadas en local.`;
       }
     } catch (error) {
       if (boardStatus) {
@@ -171,16 +355,91 @@ import PageFrame from '../../components/PageFrame.astro';
   async function updateStatus(id, status) {
     if (!id || !status) return;
 
-    await fetch('/api/orders', {
+    const response = await fetch('/api/orders', {
       method: 'PATCH',
       headers: {
         'content-type': 'application/json',
       },
       body: JSON.stringify({ id, status }),
     });
+
+    if (!response.ok && boardStatus) {
+      const result = await response.json();
+      boardStatus.textContent = result.error || 'No se pudo actualizar la comanda.';
+    }
+
     loadOrders();
   }
 
+  function printOrder(order) {
+    const ticketWindow = window.open('', '_blank', 'width=420,height=680');
+    if (!ticketWindow) return;
+
+    const lines = order.items
+      .map(
+        (item) => `
+          <tr>
+            <td>${item.quantity}x ${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(formatMoney(item.lineTotal))}</td>
+          </tr>
+        `,
+      )
+      .join('');
+
+    ticketWindow.document.write(`
+      <!doctype html>
+      <html lang="es">
+        <head>
+          <meta charset="utf-8" />
+          <title>Ticket ${escapeHtml(order.id)}</title>
+          <style>
+            body { margin: 0; padding: 18px; color: #111; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+            h1 { margin: 0; font-size: 22px; text-transform: uppercase; }
+            h2 { margin: 8px 0 16px; font-size: 14px; }
+            p { margin: 6px 0; }
+            table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+            td { padding: 7px 0; border-bottom: 1px dashed #999; vertical-align: top; }
+            td:last-child { text-align: right; white-space: nowrap; }
+            .total { font-size: 20px; font-weight: 900; text-align: right; }
+            .notes { margin-top: 14px; padding: 10px; border: 1px solid #111; }
+            @media print { body { padding: 0; } button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <h1>La Brasa Gamberra</h1>
+          <h2>${escapeHtml(order.id)} · ${escapeHtml(statusLabels[order.status] || order.status)}</h2>
+          <p><strong>Hora:</strong> ${escapeHtml(formatTime(order.createdAt))}</p>
+          <p><strong>Cliente:</strong> ${escapeHtml(order.customer.name)}</p>
+          <p><strong>Teléfono:</strong> ${escapeHtml(order.customer.phone)}</p>
+          <p><strong>Servicio:</strong> ${order.customer.service === 'delivery' ? 'Delivery' : 'Recogida'}${order.customer.time ? ` · ${escapeHtml(order.customer.time)}` : ''}</p>
+          <table>${lines}</table>
+          <p class="total">${escapeHtml(formatMoney(order.total))}</p>
+          ${order.customer.notes ? `<p class="notes"><strong>Notas:</strong><br />${escapeHtml(order.customer.notes)}</p>` : ''}
+          <button onclick="window.print()">Imprimir</button>
+          <script>window.setTimeout(() => window.print(), 250);<\/script>
+        </body>
+      </html>
+    `);
+    ticketWindow.document.close();
+  }
+
+  hideClosedInput?.addEventListener('change', () => {
+    if (!(hideClosedInput instanceof HTMLInputElement)) return;
+    board?.classList.toggle('hide-closed', hideClosedInput.checked);
+  });
+
+  soundButton?.addEventListener('click', async () => {
+    soundEnabled = !soundEnabled;
+    soundButton.textContent = soundEnabled ? 'Sonido ON' : 'Sonido';
+    soundButton.classList.toggle('is-active', soundEnabled);
+    if (soundEnabled) {
+      audioContext ||= new AudioContext();
+      await audioContext.resume();
+      playNewOrderSound();
+    }
+  });
+
+  board?.classList.toggle('hide-closed', hideClosedInput instanceof HTMLInputElement ? hideClosedInput.checked : true);
   refreshButton?.addEventListener('click', loadOrders);
   loadOrders();
   window.setInterval(loadOrders, 4000);
@@ -209,7 +468,35 @@ import PageFrame from '../../components/PageFrame.astro';
     font-weight: 850;
   }
 
-  .board-toolbar button,
+  .board-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: end;
+  }
+
+  .closed-toggle {
+    display: inline-flex;
+    min-height: 2.7rem;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.07);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    padding: 0 0.85rem;
+    text-transform: uppercase;
+  }
+
+  .closed-toggle input {
+    accent-color: #ff9d25;
+  }
+
+  .board-actions button,
   .order-ticket button {
     min-height: 2.7rem;
     border: 1px solid rgba(255, 157, 37, 0.42);
@@ -228,11 +515,101 @@ import PageFrame from '../../components/PageFrame.astro';
     text-transform: uppercase;
   }
 
-  .orders-grid {
+  .board-actions button.is-active {
+    border-color: rgba(111, 255, 177, 0.48);
+    background:
+      linear-gradient(180deg, #91ffbf, #37d87e 58%, #15924b),
+      #37d87e;
+  }
+
+  .metrics-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .metrics-row article {
+    display: grid;
+    gap: 0.35rem;
+    min-height: 6rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 207, 106, 0.13), transparent 9rem),
+      rgba(10, 7, 5, 0.76);
+  }
+
+  .metrics-row span {
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .metrics-row strong {
+    color: #ffcf6a;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .kitchen-columns {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(16rem, 1fr));
     gap: 1rem;
     align-items: start;
+    overflow-x: auto;
+    padding-bottom: 0.7rem;
+  }
+
+  .kitchen-board.hide-closed .closed-column {
+    display: none;
+  }
+
+  .kitchen-board.hide-closed .kitchen-columns {
+    grid-template-columns: repeat(3, minmax(18rem, 1fr));
+  }
+
+  .order-column {
+    min-height: 22rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 207, 106, 0.1), transparent 13rem),
+      rgba(7, 5, 4, 0.72);
+    box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.28);
+  }
+
+  .order-column > header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+    padding: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .order-column > header span,
+  .order-column > header strong {
+    color: #ffcf6a;
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.1em;
+  }
+
+  .order-column h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 1000;
+    text-transform: uppercase;
+  }
+
+  .column-orders {
+    display: grid;
+    gap: 0.8rem;
+    padding: 0.8rem;
   }
 
   .empty-board,
@@ -250,19 +627,20 @@ import PageFrame from '../../components/PageFrame.astro';
   .empty-board {
     display: grid;
     gap: 0.4rem;
-    min-height: 12rem;
+    min-height: 9rem;
     place-content: center;
     text-align: center;
   }
 
   .empty-board strong {
     color: #ffbc62;
-    font-size: 1.2rem;
+    font-size: 1rem;
     text-transform: uppercase;
   }
 
   .empty-board span {
     color: rgba(255, 255, 255, 0.58);
+    padding: 0 1rem;
   }
 
   .order-ticket {
@@ -309,9 +687,9 @@ import PageFrame from '../../components/PageFrame.astro';
     text-transform: uppercase;
   }
 
-  .order-ticket h3 {
+  .order-ticket h4 {
     margin: 0.25rem 0 0;
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
   .order-ticket header > strong {
@@ -358,7 +736,8 @@ import PageFrame from '../../components/PageFrame.astro';
   }
 
   .order-ticket footer {
-    align-items: end;
+    display: grid;
+    align-items: start;
     padding-top: 0.8rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
@@ -372,7 +751,6 @@ import PageFrame from '../../components/PageFrame.astro';
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
-    justify-content: end;
   }
 
   .order-ticket.status-ready {
@@ -384,25 +762,33 @@ import PageFrame from '../../components/PageFrame.astro';
     opacity: 0.58;
   }
 
+  .kitchen-board.has-new-order {
+    animation: new-order-pulse 900ms ease-in-out 2;
+  }
+
   @media (max-width: 980px) {
-    .orders-grid {
+    .board-toolbar {
+      display: grid;
+      align-items: start;
+    }
+
+    .board-actions {
+      justify-content: start;
+    }
+
+    .metrics-row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 700px) {
-    .board-toolbar,
-    .order-ticket footer {
-      display: grid;
-      align-items: start;
-    }
-
-    .orders-grid {
+    .metrics-row {
       grid-template-columns: 1fr;
     }
 
-    .order-ticket footer div {
-      justify-content: start;
+    .kitchen-columns,
+    .kitchen-board.hide-closed .kitchen-columns {
+      grid-template-columns: repeat(3, minmax(17rem, 86vw));
     }
   }
 
@@ -415,6 +801,16 @@ import PageFrame from '../../components/PageFrame.astro';
     50% {
       transform: translateX(8%);
       opacity: 1;
+    }
+  }
+
+  @keyframes new-order-pulse {
+    0%,
+    100% {
+      filter: none;
+    }
+    50% {
+      filter: drop-shadow(0 0 1.5rem rgba(255, 157, 37, 0.48));
     }
   }
 </style>
