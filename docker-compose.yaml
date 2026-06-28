@@ -33,17 +33,21 @@ services:
       - .:/workspace # Sincroniza tu código en tiempo real
       - web_node_modules:/workspace/node_modules
       - web_astro_cache:/workspace/.astro
+      - web_dist:/workspace/dist
+      - web_data:/workspace/.data
     depends_on:
       - base_datos
     networks:
       - red_burger
     # Prepara los volumenes aislados y mantiene el contenedor vivo para VS Code.
-    command: sh -lc "mkdir -p /workspace/node_modules /workspace/.astro && chown -R node:node /workspace/node_modules /workspace/.astro && sleep infinity"
+    command: sh -lc "mkdir -p /workspace/node_modules /workspace/.astro /workspace/dist /workspace/.data && chown -R node:node /workspace/node_modules /workspace/.astro /workspace/dist /workspace/.data && sleep infinity"
 
 volumes:
   db_data:
   web_node_modules:
   web_astro_cache:
+  web_dist:
+  web_data:
 
 networks:
   red_burger:
