@@ -1,67 +1,51 @@
-# La Brasa Gamberra
+# La Brasa Gamberra · BurgerWebApp
 
-Web cinematográfica para una marca de smash burgers con estetica rock, brasa, video hero, fuego CSS, carta, pedidos prototipo y reservas.
+Web para una marca de smash burgers con estética rock, vídeo de presentación, carta y prototipo de gestión de pedidos.
 
-## Autor
+**Proyecto de José Luis Cabañas (UlysesX12).** Los créditos del proyecto abarcan dirección visual, experiencia web y desarrollo propio; Astro, Tailwind y las demás dependencias conservan su autoría.
 
-Proyecto disenado y desarrollado al completo por **Jose Luis Cabanas** (**UlysesX12**).
+## Estado y alcance
 
-Si reutilizas, clonas, presentas o publicas este proyecto o partes de el, por favor manten el credito visible al autor original.
+El código incluye páginas públicas, carrito, un endpoint `/api/orders` y un almacén de pedidos JSON en `.data/orders.json`. La compilación usa el adaptador Node de Astro en modo servidor.
 
-## Creditos de desarrollo
+Es un prototipo en desarrollo. La existencia de endpoints no acredita preparación para producción: quedan por revisar persistencia, concurrencia, permisos, pagos y operación, según el [roadmap](ROADMAP.md). El almacén JSON actual no utiliza la base PostgreSQL definida en Docker Compose.
 
-- Direccion visual, estructura y experiencia web: **Jose Luis Cabanas / UlysesX12**
-- Desarrollo frontend Astro: **Jose Luis Cabanas / UlysesX12**
-- Concepto visual de marca, landing, carta, pedidos prototipo y reservas: **Jose Luis Cabanas / UlysesX12**
+## Empezar
 
-## Estado del proyecto
-
-La web ya incluye:
-
-- Landing cinematográfica con video hero.
-- Navegacion estilo evento.
-- Footer con fuego CSS, brasas y chispas.
-- Paginas publicas: carta, pedidos, reservas, contacto y sobre nosotros.
-- Carta estructurada desde `src/data/menu.ts`.
-- Prototipo de carrito local en `/takeaway`.
-- Prototipo de reservas en `/reservas`.
-- Roadmap tecnico para BBDD, pagos, pedidos reales, tickets y despliegue.
-
-Todavía no es una aplicación de pedidos en producción. El flujo de pedido y reservas esta planteado a nivel visual/local, pendiente de backend, base de datos y pasarela de pago.
-
-## Roadmap
-
-Consulta [ROADMAP.md](./ROADMAP.md) para ver los pendientes tecnicos: modelo de datos, endpoints, estados operativos, pagos, tickets/facturas y despliegue.
-
-## Desarrollo local
+Requiere Node.js **22.12 o superior**, según `package.json`.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-Servidor local por defecto:
+Servidor local por defecto: `http://localhost:4321`. Revisa [.env.example](.env.example) y la configuración de administración antes de probar flujos que la requieran.
 
-```text
-http://localhost:4321
-```
-
-En dev container/Docker, el proyecto se expone normalmente en:
-
-```text
-http://localhost:4321
-```
-
-## Build
+## Compilar y previsualizar
 
 ```sh
 npm run build
+npm run preview
 ```
 
-## Stack
+## Mapa del proyecto
 
-- Astro
-- Tailwind CSS
-- CSS custom animations
-- Video hero optimizado para web
-- Prototipos frontend con estado local
+| Ruta | Contenido |
+| --- | --- |
+| `src/pages/` | Inicio, carta, reservas, contacto, pedidos y administración. |
+| `src/pages/api/orders.ts` | Endpoint del prototipo de pedidos. |
+| `src/lib/orderStore.ts` | Persistencia JSON del prototipo. |
+| `src/data/menu.ts` | Carta estructurada. |
+| `src/components/` | Navegación y componentes visuales. |
+| [ROADMAP.md](ROADMAP.md) | Trabajo técnico pendiente. |
+| [docker-compose.yaml](docker-compose.yaml) y `.devcontainer/` | Entorno de desarrollo. |
+
+## Créditos y reutilización
+
+Conserva el crédito visible a José Luis Cabañas / UlysesX12. El repositorio no incluye actualmente un archivo LICENSE; el crédito no sustituye los permisos necesarios para reutilizar o distribuir el trabajo. Las dependencias tienen sus propias condiciones.
+
+Esta revisión actualiza la documentación a partir del código disponible; no incorpora una nueva validación de ejecución.
+
+## Más proyectos
+
+Consulta el [catálogo de proyectos públicos](https://github.com/UlysesX12/WebSite/blob/main/docs/PROYECTOS.md).
